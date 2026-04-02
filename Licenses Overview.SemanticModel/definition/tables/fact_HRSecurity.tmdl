@@ -1,0 +1,50 @@
+/// Fact table mapping HR managers to employees for row-level security logic.
+table fact_HRSecurity
+	lineageTag: 508ec233-fe84-4ed7-ad70-0b8c786d3d43
+
+	column HREmployeeKey
+		dataType: string
+		lineageTag: 64fc0b0d-fc99-4c35-a5cd-8523aef86bab
+		summarizeBy: none
+		sourceColumn: HREmployeeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column HRManagerKey
+		dataType: string
+		lineageTag: 155707ce-1873-466d-9505-187c924d6500
+		summarizeBy: none
+		sourceColumn: HRManagerKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWCreatedDate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 1d7ebeec-29e8-4c32-839f-40a48bfb8677
+		summarizeBy: none
+		sourceColumn: DWCreatedDate
+
+		variation Variation
+			isDefault
+			relationship: 4ab68da4-c6af-4c63-9b3e-f88177130a89
+			defaultHierarchy: LocalDateTable_bad7dc21-8f42-461a-9c95-6ef3adec2a6a.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition HRSecurity = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("ww-sql-kompanbi-prod.database.windows.net", "ww-sqldb-kompanbidw"),
+				    stage_HRSecurity = Source{[Schema="stage",Item="HRSecurity"]}[Data],
+				    #"Lowercased Text" = Table.TransformColumns(stage_HRSecurity,{{"HREmployeeKey", Text.Lower, type text}, {"HRManagerKey", Text.Lower, type text}}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Lowercased Text","elilan","EliPat",Replacer.ReplaceText,{"HRManagerKey"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","trosta","trochr",Replacer.ReplaceText,{"HREmployeeKey"})
+				in
+				    #"Replaced Value1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

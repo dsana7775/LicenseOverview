@@ -1,0 +1,115 @@
+/// Fact table containing user records imported from the QAD source system.
+table fact_UsersFromQAD
+	lineageTag: 9fb30204-5f5f-4eb2-8b3f-12a133e381c2
+
+	column 'User ID'
+		dataType: string
+		lineageTag: 7d809358-ba5c-4ba6-a3cb-26b1289c46ea
+		summarizeBy: none
+		sourceColumn: User ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Display Name'
+		dataType: string
+		lineageTag: 273a1eef-fe07-42cf-b70b-8a79022a69d8
+		summarizeBy: none
+		sourceColumn: Display Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User active'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: c46a498d-ab5c-43d2-9f8f-45c2ea14306b
+		summarizeBy: none
+		sourceColumn: User active
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User active reason'
+		dataType: string
+		lineageTag: 424d2a07-de08-4b64-bb06-218d658b7c22
+		summarizeBy: none
+		sourceColumn: User active reason
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Group Member'
+		dataType: string
+		lineageTag: b04a1090-20d9-437a-a3e6-36ae5bc67635
+		summarizeBy: none
+		sourceColumn: Group Member
+
+		annotation SummarizationSetBy = Automatic
+
+	column UPN
+		dataType: string
+		lineageTag: 61ea927b-3395-4a49-bec0-d88e50703058
+		summarizeBy: none
+		sourceColumn: UPN
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Country Code'
+		dataType: string
+		lineageTag: 98afdfce-fec8-4f97-8c20-175556c9ae82
+		summarizeBy: none
+		sourceColumn: Country Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Unit'
+		dataType: string
+		lineageTag: 8d3cbbc5-b995-4b3f-8c9a-6fcc97d0ff5d
+		summarizeBy: none
+		sourceColumn: Business Unit
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Internal User'
+		dataType: string
+		lineageTag: 31ae3455-520d-4a04-a139-70e47c073024
+		summarizeBy: none
+		sourceColumn: Internal User
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataSource
+		dataType: string
+		lineageTag: c7e05849-269c-4657-afa7-eb64637efd1e
+		summarizeBy: none
+		sourceColumn: DataSource
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Users_fromQAD = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("CZSQL001.kompan.net\PRO2DAGREEN", "qaddb", [Query="SELECT#(lf)    [usr_userid]#(lf)   ,[usr_name]#(lf)   ,[usr_active]#(lf)   ,[usr_active_reason]#(lf)   ,[usr_ctry_code]#(lf)FROM [qaddb].[dbo].[usr_mstr]"]),
+				    #"Replaced Value" = Table.ReplaceValue(Source,"PetKon","PetKon_QAD",Replacer.ReplaceText,{"usr_userid"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","LucSus","lucsus_qad",Replacer.ReplaceText,{"usr_userid"}),
+				    #"Replaced Value3" = Table.ReplaceValue(#"Replaced Value1","PetrKo","PetKon",Replacer.ReplaceText,{"usr_userid"}),
+				    #"Replaced Value2" = Table.ReplaceValue(#"Replaced Value3","JarSuc","jarosu",Replacer.ReplaceText,{"usr_userid"}),
+				    #"Replaced Value4" = Table.ReplaceValue(#"Replaced Value2","PeKova","PetrKo",Replacer.ReplaceText,{"usr_userid"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Replaced Value4",{{"usr_userid", "User ID"}, {"usr_name", "Display Name"}, {"usr_active", "User active"}, {"usr_active_reason", "User active reason"}, {"usr_ctry_code", "Country Code"}}),
+				    #"Added Custom1" = Table.AddColumn(#"Renamed Columns", "Group Member", each "QADUsers"),
+				    #"Added Custom2" = Table.AddColumn(#"Added Custom1", "UPN", each [User ID] & "@kompan.net"),
+				    #"Filtered Rows" = Table.SelectRows(#"Added Custom2", each ([User active] = true)),
+				    #"Sorted Rows" = Table.Sort(#"Filtered Rows",{{"User ID", Order.Ascending}}),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Sorted Rows", "Country Code", "Country Code - Copy"),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Duplicated Column",{{"Country Code - Copy", "Business Unit"}}),
+				    #"Uppercased Text" = Table.TransformColumns(#"Renamed Columns1",{{"UPN", Text.Upper, type text}}),
+				    #"Filtered Rows1" = Table.SelectRows(#"Uppercased Text", each true),
+				    #"Uppercased Text1" = Table.TransformColumns(#"Filtered Rows1",{{"Business Unit", Text.Upper, type text}}),
+				    #"Lowercased Text" = Table.TransformColumns(#"Uppercased Text1",{{"User ID", Text.Lower, type text}}),
+				    #"Added Custom" = Table.AddColumn(#"Lowercased Text", "Internal User", each "Yes"),
+				    #"Added Custom3" = Table.AddColumn(#"Added Custom", "DataSource", each "QAD")
+				in
+				    #"Added Custom3"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

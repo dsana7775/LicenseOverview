@@ -1,0 +1,39 @@
+role Manager
+	modelPermission: read
+
+	tablePermission dim_User = ```
+			-- Tento kód patří přímo pod tabulku dim_User v Manage Roles
+			VAR UserInitials = LOWER(LEFT(USERPRINCIPALNAME(), FIND("@", USERPRINCIPALNAME()) - 1))
+			
+			-- Zjistíme, zda je uživatel IT Manager nebo Finance Manager (z tabulky fact_ManagerAccess)
+			VAR UserRoles = 
+			    SELECTCOLUMNS(
+			        FILTER(fact_ManagerAccess, LOWER(fact_ManagerAccess[Initials]) = UserInitials),
+			        "Role", [Role]
+			    )
+			VAR IsIT = "ITManager" IN UserRoles
+			VAR IsFinance = "FinanceManager" IN UserRoles
+			
+			-- Zjistíme, zda je uživatel v fact_HRSecurity jako nadřízený
+			VAR ManagedEmployees = 
+			    SELECTCOLUMNS(
+			        FILTER(fact_HRSecurity, LOWER(fact_HRSecurity[HRManagerKey]) = UserInitials),
+			        "EmpKey", LOWER([HREmployeeKey])
+			    )
+			
+			RETURN
+			IF(
+			    IsIT, 
+			    TRUE(), -- IT vidí vše
+			    IF(
+			        IsFinance,
+			        -- Finance vidí lidi ze své Business Unit
+			        [Business Unit] IN SELECTCOLUMNS(FILTER(fact_ManagerAccess, LOWER([Initials]) = UserInitials), "BU", [BusinessUnit]),
+			        -- Manažer vidí své podřízené + sebe
+			        [Initials] IN ManagedEmployees || [Initials] = UserInitials
+			    )
+			)
+			```
+
+	annotation PBI_Id = b49cd4bbfd524b1889a91e47fcb2cd8c
+

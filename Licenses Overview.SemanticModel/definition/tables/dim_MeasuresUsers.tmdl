@@ -1,0 +1,196 @@
+/// Business measures used for user trends, access checks, and PC warranty reporting.
+table dim_MeasuresUsers
+	lineageTag: 9b20f24b-bba5-485b-86da-10f18c878543
+
+	/// Number of unique users with an email address in Active Directory.
+	measure 'Count of Users' = COUNTROWS(DISTINCT(fact_UsersFromAD[Mail]))
+		formatString: 0
+		displayFolder: Users
+		lineageTag: 9f819539-8a5f-458c-83e5-e8fffbf6832a
+
+	/// Number of users who were active on the selected date.
+	measure CurrentUsers =
+			
+			VAR MaxDate = MAX('dim_Calendar'[Date])
+			RETURN
+			CALCULATE(
+			    COUNTROWS('fact_UsersFromAD'),
+			    FILTER(
+			        ALL('fact_UsersFromAD'),
+			        'fact_UsersFromAD'[Group Member] = "Corp-SP-AddressBook" &&
+			        'fact_UsersFromAD'[WhenCreatedDate] <= MaxDate &&
+			        (ISBLANK('fact_UsersFromAD'[WhenChangedDate]) || 'fact_UsersFromAD'[WhenChangedDate] >= MaxDate)
+			    )
+			)
+		formatString: 0
+		displayFolder: Users
+		lineageTag: 736a0396-15dc-4bc6-95a6-04d791668120
+
+	/// Number of users created up to the selected reporting date.
+	measure NewUsersPerYear = ```
+			
+			CALCULATE(
+			    COUNTROWS('fact_UsersFromAD'),
+			    FILTER(
+			        'fact_UsersFromAD',
+			        'fact_UsersFromAD'[WhenCreatedDate] <= MAX('dim_Calendar'[Date])
+			    )
+			)
+			
+			```
+		formatString: 0
+		displayFolder: Users
+		lineageTag: 5958ba08-fcc3-4bc9-80ee-79eb804a7c48
+
+	/// Number of user accounts created in the current calendar year.
+	measure NewAccountsThisYear =
+			
+			CALCULATE(
+			    COUNTROWS(
+			        VALUES('fact_UsersFromAD'[Mail])
+			    ),
+			    FILTER(
+			        ALL('fact_UsersFromAD'),
+			        YEAR('fact_UsersFromAD'[WhenCreatedDate]) = YEAR(TODAY())
+			    )
+			)
+		formatString: 0
+		displayFolder: Users
+		lineageTag: 799def98-51bb-4415-8781-767610d2c28b
+
+	/// Number of external users created in the current calendar year.
+	measure NewUsersThisYearExternal =
+			
+			CALCULATE(
+			    COUNTROWS(DISTINCT(fact_UsersFromAD[Mail])),
+			    FILTER('fact_UsersFromAD', YEAR('fact_UsersFromAD'[WhenCreatedDate]) = YEAR(TODAY())),
+			    FILTER(fact_UsersFromAD, fact_UsersFromAD[Internal User] = "No")
+			)
+		formatString: 0
+		displayFolder: Users
+		lineageTag: f4f55339-cc2d-4d28-bc1a-8b0319b94f97
+
+	/// Number of internal users created in the current calendar year.
+	measure NewUsersThisYearInternal =
+			
+			CALCULATE(
+			    COUNTROWS(DISTINCT(fact_UsersFromAD[Mail])),
+			    FILTER('fact_UsersFromAD', YEAR('fact_UsersFromAD'[WhenCreatedDate]) = YEAR(TODAY())),
+			    FILTER(fact_UsersFromAD, fact_UsersFromAD[Internal User] = "Yes")
+			)
+		formatString: 0
+		displayFolder: Users
+		lineageTag: 8428557d-a47e-4990-aff0-559eaf2855a8
+
+	/// Creation year of the selected user record.
+	measure YearCreated = YEAR('fact_UsersFromAD'[WhenCreatedDate])
+		displayFolder: Users
+		lineageTag: c6be53c7-f859-4ff1-b172-ccb6e9bd4bce
+
+	/// TRUE when the signed-in user manages at least one employee.
+	measure IsManager =
+			
+			VAR UserInitials = LOWER(LEFT(USERPRINCIPALNAME(), FIND("@", USERPRINCIPALNAME()) - 1))
+			
+			VAR IsManager =
+			    COUNTROWS(
+			        FILTER(
+			            fact_HRSecurity,
+			            LOWER(fact_HRSecurity[HRManagerKey]) = UserInitials
+			        )
+			    ) > 0
+			
+			RETURN
+			IsManager
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		displayFolder: RowLevelSecurity
+		lineageTag: 1ffddc47-da64-4d6f-af56-5da8013616c5
+
+	/// Initials of the signed-in user.
+	measure MyName = LOWER(LEFT(USERPRINCIPALNAME(), FIND("@", USERPRINCIPALNAME()) - 1))
+		displayFolder: RowLevelSecurity
+		lineageTag: 9eeab7e0-7ef4-4328-b4e6-e11fdced7516
+
+	/// Fixed initials used for testing row-level security behaviour.
+	measure MyNameFixed = "ondzaj"
+		displayFolder: RowLevelSecurity
+		lineageTag: a43af522-0498-40f5-9319-4b8ec1aec51a
+
+	/// Business unit of the signed-in user.
+	measure CurrentUserBU = ```
+			
+			        CALCULATE(
+			        MAX('dim_User'[Business Unit]),
+			        FILTER(
+			            'dim_User',
+			            LOWER('dim_User'[Initials]) = [MyName]
+			        )
+			    )
+			```
+		displayFolder: RowLevelSecurity
+		lineageTag: 24689fe3-37d7-4c24-ad8a-b33b5009f785
+
+	/// TRUE when the signed-in user has Finance Manager access.
+	measure IsFinanceManager = ```
+			
+			VAR UserInitials = LOWER(LEFT(USERPRINCIPALNAME(), FIND("@", USERPRINCIPALNAME()) - 1))
+			
+			VAR UserRoles =
+			    SELECTCOLUMNS(
+			        FILTER(
+			            fact_ManagerAccess,
+			            LOWER(fact_ManagerAccess[Initials]) = UserInitials
+			        ),
+			        "Role", fact_ManagerAccess[Role]
+			    )
+			    
+			RETURN
+			CONTAINS(UserRoles, [Role], "FinanceManager")
+			
+			
+			```
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		displayFolder: RowLevelSecurity
+		lineageTag: 6927ca00-fed7-46a0-a3f6-0ebf866e4993
+
+	/// TRUE when the signed-in user has IT Manager access.
+	measure IsITManager =
+			
+			VAR UserInitials = LOWER(LEFT(USERPRINCIPALNAME(), FIND("@", USERPRINCIPALNAME()) - 1))
+			VAR UserRoles =
+			    SELECTCOLUMNS(
+			        FILTER(
+			            fact_ManagerAccess,
+			            LOWER(fact_ManagerAccess[Initials]) = UserInitials
+			        ),
+			        "Role", fact_ManagerAccess[Role]
+			    )
+			
+			RETURN
+			CONTAINS(UserRoles, [Role], "ITManager")
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		displayFolder: RowLevelSecurity
+		lineageTag: fe46618c-9f0f-4d2b-af73-086a1d2f6205
+
+	/// Reference date used by the measures table for time-based calculations.
+	column Date
+		isHidden
+		formatString: General Date
+		lineageTag: 64b87b70-f2a3-4fd5-aeb5-15b818967872
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: dim_Calendar[Date]
+
+		variation Variation
+			isDefault
+			relationship: 4a75c900-89d5-4cf1-90ef-0430e37fd618
+			defaultHierarchy: LocalDateTable_6f44ce91-ee83-40d1-a02e-5e1dc8a21090.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Measures Users' = calculated
+		mode: import
+		source = DATESMTD(DATEADD('dim_Calendar'[Date],-1,MONTH))
+
+	annotation PBI_Id = 2bca612023474cb998bc516be598446c
+

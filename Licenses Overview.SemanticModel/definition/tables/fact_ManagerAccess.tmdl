@@ -1,0 +1,42 @@
+/// Fact table defining manager roles and business unit access for row-level security.
+table fact_ManagerAccess
+	lineageTag: 21a83c50-6d71-4710-85a6-1cce018a9df1
+
+	column Initials
+		dataType: string
+		lineageTag: 5a6ec7bd-cf1f-4178-80c1-2b8472b53591
+		summarizeBy: none
+		sourceColumn: Initials
+
+		annotation SummarizationSetBy = Automatic
+
+	column Role
+		dataType: string
+		lineageTag: 408e9644-1461-4590-9eca-eb921c6f7a3e
+		summarizeBy: none
+		sourceColumn: Role
+
+		annotation SummarizationSetBy = Automatic
+
+	column BusinessUnit
+		dataType: string
+		lineageTag: 5fe7d5f8-45f2-4c0d-bd5e-90a73b17628f
+		summarizeBy: none
+		sourceColumn: BusinessUnit
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ManagerAccess = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("jdLRCsIgFAbgd/F6N71CtSLWFmwRhOzizMQUdaAFraevVOrGabeeT/9zDmKMyJOBhMeECrThGjShNWhg1LwPui3qC4xADpKSGCi7DNgdHVBgiKQxsK4c4Bewk42DRUY0h5BBrhwSY5hR2Ztv6ldzFaq45Dp6tXTACmD3IRq+z4Clf0GMlnGR2OE8+O5wbr5VkwH1OQOqNgNOPiL1Wf4gISZFQqsp8hm3fwE=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Initials = _t, Role = _t, BusinessUnit = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Initials", type text}, {"Role", type text}, {"BusinessUnit", type text}}),
+				    #"Sorted Rows" = Table.Sort(#"Changed Type",{{"Initials", Order.Ascending}})
+				in
+				    #"Sorted Rows"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

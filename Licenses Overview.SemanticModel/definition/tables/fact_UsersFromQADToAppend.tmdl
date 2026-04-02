@@ -1,0 +1,94 @@
+/// Staging fact table containing QAD users appended into the consolidated user dimension.
+table fact_UsersFromQADToAppend
+	lineageTag: bc1f81cf-e2c2-440a-a600-875c8e770625
+
+	column Initials
+		dataType: string
+		lineageTag: a35fbe37-385d-43ea-8217-01dc32c26ebf
+		summarizeBy: none
+		sourceColumn: Initials
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Display Name'
+		dataType: string
+		lineageTag: 930d56d2-3088-4c03-a979-2c982c9edd37
+		summarizeBy: none
+		sourceColumn: Display Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column UPN
+		dataType: string
+		lineageTag: 3b0b53da-608d-4a72-a271-44e98157e431
+		summarizeBy: none
+		sourceColumn: UPN
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Unit'
+		dataType: string
+		lineageTag: 2db7db81-d018-4bdf-847d-234e0dc6e8ae
+		summarizeBy: none
+		sourceColumn: Business Unit
+
+		annotation SummarizationSetBy = Automatic
+
+	column Department
+		dataType: string
+		lineageTag: de866372-51d7-47f8-8f2d-c35e4ac1977f
+		summarizeBy: none
+		sourceColumn: Department
+
+		annotation SummarizationSetBy = Automatic
+
+	column Company
+		dataType: string
+		lineageTag: ad6f4fda-0b2b-4fc9-9346-188a3900d3b9
+		summarizeBy: none
+		sourceColumn: Company
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataSource
+		dataType: string
+		lineageTag: 55c46969-48c6-468a-8db2-df1d031d0cf1
+		summarizeBy: none
+		sourceColumn: DataSource
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Users_fromQAD_ToAppend = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("CZSQL001.kompan.net\PRO2DAGREEN", "qaddb", [Query="SELECT#(lf)    [usr_userid]#(lf)   ,[usr_name]#(lf)   ,[usr_active]#(lf)   ,[usr_active_reason]#(lf)   ,[usr_ctry_code]#(lf)FROM [qaddb].[dbo].[usr_mstr]"]),
+				    #"Replaced Value1" = Table.ReplaceValue(Source,"LucSus","LucSus_QAD",Replacer.ReplaceText,{"usr_userid"}),
+				    #"Replaced Value2" = Table.ReplaceValue(#"Replaced Value1","PetKon","PetKon_QAD",Replacer.ReplaceText,{"usr_userid"}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Replaced Value2","JarSuc","JaroSu",Replacer.ReplaceText,{"usr_userid"}),
+				    #"Replaced Value3" = Table.ReplaceValue(#"Replaced Value","PetrKo","PetKon",Replacer.ReplaceText,{"usr_userid"}),
+				    #"Replaced Value4" = Table.ReplaceValue(#"Replaced Value3","PeKova","PetrKo",Replacer.ReplaceText,{"usr_userid"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Replaced Value4",{{"usr_userid", "User ID"}, {"usr_name", "Display Name"}, {"usr_active", "User active"}, {"usr_active_reason", "User active reason"}, {"usr_ctry_code", "Country Code"}}),
+				    #"Added Custom1" = Table.AddColumn(#"Renamed Columns", "Group Member", each "QADUsers"),
+				    #"Added Custom2" = Table.AddColumn(#"Added Custom1", "UPN", each [User ID] & "@kompan.net"),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Added Custom2", "Country Code", "Country Code - Copy"),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Duplicated Column",{{"Country Code - Copy", "Business Unit"}}),
+				    #"Uppercased Text" = Table.TransformColumns(#"Renamed Columns1",{{"UPN", Text.Upper, type text}}),
+				    #"Filtered Rows" = Table.SelectRows(#"Uppercased Text", each ([User active] = true)),
+				    #"Uppercased Text1" = Table.TransformColumns(#"Filtered Rows",{{"Business Unit", Text.Upper, type text}}),
+				    #"Lowercased Text" = Table.TransformColumns(#"Uppercased Text1",{{"User ID", Text.Lower, type text}}),
+				    #"Added Custom" = Table.AddColumn(#"Lowercased Text", "Internal User", each "Yes"),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Custom",{"User active", "User active reason", "Country Code", "Group Member", "Internal User"}),
+				    #"Renamed Columns2" = Table.RenameColumns(#"Removed Columns",{{"User ID", "Initials"}}),
+				    #"Added Custom3" = Table.AddColumn(#"Renamed Columns2", "Department", each "Operations 1"),
+				    #"Added Custom4" = Table.AddColumn(#"Added Custom3", "Company", each "Kompan Czech Republic s.r.o."),
+				    #"Added Custom5" = Table.AddColumn(#"Added Custom4", "distinguishedName", each "QAD Users"),
+				    #"Sorted Rows" = Table.Sort(#"Added Custom5",{{"Initials", Order.Ascending}}),
+				    #"Renamed Columns3" = Table.RenameColumns(#"Sorted Rows",{{"distinguishedName", "DataSource"}})
+				in
+				    #"Renamed Columns3"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

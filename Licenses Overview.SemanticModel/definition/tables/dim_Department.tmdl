@@ -1,0 +1,66 @@
+/// Lookup table used to analyse users by department, business unit, country, and company.
+table dim_Department
+	lineageTag: 1b6f4300-106b-4dd2-9528-5108e648bbae
+
+	/// Department name used for organisational reporting and filtering.
+	column Department
+		dataType: string
+		lineageTag: 06e824ce-b20c-4315-b480-ee9fabf6c6cf
+		summarizeBy: none
+		sourceColumn: Department
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Business unit linked to the department.
+	column 'Business Unit'
+		dataType: string
+		lineageTag: f58fe376-e999-4908-8967-6564230a7dbf
+		summarizeBy: none
+		sourceColumn: Business Unit
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Country associated with the department or company structure.
+	column Country
+		dataType: string
+		lineageTag: 693137bb-770f-4f93-ba15-dfea971bb063
+		summarizeBy: none
+		sourceColumn: Country
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Legal company associated with the department.
+	column Company
+		dataType: string
+		lineageTag: 81d7f635-dbbd-4c21-b2ba-ce00b0d7f546
+		summarizeBy: none
+		sourceColumn: Company
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dimDepartment = m
+		mode: import
+		queryGroup: dim
+		source =
+				let
+				    Source = ActiveDirectory.Domains("kompan.net"),
+				    #"kompan net" = Source{[Domain="kompan.net"]}[Object Categories],
+				    user = #"kompan net"{[Category="user"]}[Objects],
+				    #"Expanded organizationalPerson" = Table.ExpandRecordColumn(user, "organizationalPerson", {"assistant", "businessRoles", "c", "co", "comment", "company", "countryCode", "department", "destinationIndicator", "division", "employeeID", "employeeNumber", "employeeType", "facsimileTelephoneNumber", "generationQualifier", "givenName", "homePhone", "homePostalAddress", "houseIdentifier", "initials", "internationalISDNNumber", "ipPhone", "l", "mail", "manager", "mhsORAddress", "middleName", "mobile", "msDS-AllowedToActOnBehalfOfOtherIdentity", "msDS-AllowedToDelegateTo", "msDS-HABSeniorityIndex", "msDS-PhoneticCompanyName", "msDS-PhoneticDepartment", "msDS-PhoneticDisplayName", "msDS-PhoneticFirstName", "msDS-PhoneticLastName", "msExchHouseIdentifier", "msExchUserCulture", "o", "otherFacsimileTelephoneNumber", "otherHomePhone", "otherIpPhone", "otherMailbox", "otherMobile", "otherPager", "otherTelephone", "ou", "pager", "personalPager", "personalTitle", "physicalDeliveryOfficeName", "postalAddress", "postalCode", "postOfficeBox", "preferredDeliveryMethod", "primaryInternationalISDNNumber", "primaryTelexNumber", "registeredAddress", "st", "street", "streetAddress", "telephoneAssistant", "teletexTerminalIdentifier", "telexNumber", "thumbnailLogo", "thumbnailPhoto", "title", "x121Address"}, {"assistant", "businessRoles", "c", "co", "comment", "company", "countryCode", "department", "destinationIndicator", "division", "employeeID", "employeeNumber", "employeeType", "facsimileTelephoneNumber", "generationQualifier", "givenName", "homePhone", "homePostalAddress", "houseIdentifier", "initials", "internationalISDNNumber", "ipPhone", "l", "mail", "manager", "mhsORAddress", "middleName", "mobile", "msDS-AllowedToActOnBehalfOfOtherIdentity", "msDS-AllowedToDelegateTo", "msDS-HABSeniorityIndex", "msDS-PhoneticCompanyName", "msDS-PhoneticDepartment", "msDS-PhoneticDisplayName", "msDS-PhoneticFirstName", "msDS-PhoneticLastName", "msExchHouseIdentifier", "msExchUserCulture", "o", "otherFacsimileTelephoneNumber", "otherHomePhone", "otherIpPhone", "otherMailbox", "otherMobile", "otherPager", "otherTelephone", "ou", "pager", "personalPager", "personalTitle", "physicalDeliveryOfficeName", "postalAddress", "postalCode", "postOfficeBox", "preferredDeliveryMethod", "primaryInternationalISDNNumber", "primaryTelexNumber", "registeredAddress", "st", "street", "streetAddress", "telephoneAssistant", "teletexTerminalIdentifier", "telexNumber", "thumbnailLogo", "thumbnailPhoto", "title", "x121Address"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Expanded organizationalPerson", {"department"}),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Removed Duplicates",{"c", "co", "company", "department"}),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Removed Other Columns",{"department", "c", "co", "company"}),
+				    #"Filtered Rows" = Table.SelectRows(#"Reordered Columns", each [department] <> null and [department] <> ""),
+				    #"Sorted Rows" = Table.Sort(#"Filtered Rows",{{"department", Order.Ascending}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Sorted Rows",{{"c", "Business Unit"}, {"co", "Country"}, {"company", "Company"}, {"department", "Department"}}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Renamed Columns","Finance","Finance (DK)",Replacer.ReplaceValue,{"Department"}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Replaced Value1","FINANCE","Finance (BE)",Replacer.ReplaceText,{"Department"}),
+				    #"Replaced Value2" = Table.ReplaceValue(#"Replaced Value","Sales Support","Sales Support (FR)",Replacer.ReplaceValue,{"Department"}),
+				    #"Replaced Value3" = Table.ReplaceValue(#"Replaced Value2","Sales support","Sales Support (DE)",Replacer.ReplaceValue,{"Department"})
+				in
+				    #"Replaced Value3"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

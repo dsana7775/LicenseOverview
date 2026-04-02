@@ -1,0 +1,81 @@
+/// Lookup table for license products and service plans used in license reporting.
+table dim_Licenses
+	lineageTag: 12d59fbb-e6ac-4b33-9f38-9975e12de10d
+
+	/// Business-friendly product name shown in reporting.
+	column Product_Display_Name
+		dataType: string
+		lineageTag: cbc8bdd2-fd24-457f-86c5-37d92ea4f190
+		summarizeBy: none
+		sourceColumn: Product_Display_Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// License identifier used to match source data to the product definition.
+	column String_Id
+		dataType: string
+		lineageTag: f8c17f1b-fcb9-4c55-8fa3-8a26bd0931a0
+		summarizeBy: none
+		sourceColumn: String_Id
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique technical identifier for the license product.
+	column GUID
+		dataType: string
+		lineageTag: 72ff7ef9-aef8-4193-b705-06c0b5d87eea
+		summarizeBy: none
+		sourceColumn: GUID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Name of the service plan included in the product.
+	column Service_Plan_Name
+		dataType: string
+		lineageTag: 9aa551b5-903e-452a-85e8-6fb798ec4ef0
+		summarizeBy: none
+		sourceColumn: Service_Plan_Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique identifier for the included service plan.
+	column Service_Plan_Id
+		dataType: string
+		lineageTag: fd0ddaf1-4816-411d-893f-31f8c6c75e4f
+		summarizeBy: none
+		sourceColumn: Service_Plan_Id
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Readable list of service plans included in the license product.
+	column Service_Plans_Included_Friendly_Names
+		dataType: string
+		lineageTag: fa49bf7d-0e30-4a4a-9bfe-58eb53301f5d
+		summarizeBy: none
+		sourceColumn: Service_Plans_Included_Friendly_Names
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dimLicenses = m
+		mode: import
+		queryGroup: dim
+		source =
+				let
+				    Source = SharePoint.Files("https://kompangroup.sharepoint.com/OPE/ITOPS/", [ApiVersion = 15]),
+				    #"Filtered Rows" = Table.SelectRows(Source, each ([Extension] = ".xlsx") and ([Name] = "Product names and service plan identifiers for licensing.xlsx")),
+				    #"Expanded Attributes" = Table.ExpandRecordColumn(#"Filtered Rows", "Attributes", {"Size", "Content Type", "Kind"}, {"Attributes.Size", "Attributes.Content Type", "Attributes.Kind"}),
+				    #"Filtered Hidden Files1" = Table.SelectRows(#"Expanded Attributes", each [Attributes]?[Hidden]? <> true),
+				    #"Invoke Custom Function1" = Table.AddColumn(#"Filtered Hidden Files1", "Transform File", each #"Transform File"([Content])),
+				    #"Removed Other Columns1" = Table.SelectColumns(#"Invoke Custom Function1", {"Transform File"}),
+				    #"Expanded Table Column1" = Table.ExpandTableColumn(#"Removed Other Columns1", "Transform File", Table.ColumnNames(#"Transform File"(#"Sample File"))),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Table Column1",{{"Product_Display_Name", type text}, {"String_Id", type text}, {"GUID", type text}, {"Service_Plan_Name", type text}, {"Service_Plan_Id", type text}, {"Service_Plans_Included_Friendly_Names", type text}, {"Column1", type any}, {"Column2", type any}}),
+				    #"Removed Duplicates" = Table.Distinct(#"Changed Type", {"String_Id"}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Removed Duplicates",{"Column2", "Column1"}),
+				    #"Filtered Rows1" = Table.SelectRows(#"Removed Columns", each ([String_Id] = "OFFICESUBSCRIPTION"))
+				in
+				    #"Filtered Rows1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

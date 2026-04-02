@@ -1,0 +1,71 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: cs-CZ
+	dataAccessOptions
+		fastCombine
+		legacyRedirects
+		returnErrorValuesAsNull
+
+queryGroup 'Transform File from Query1'
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup 'Transform File from Query1\Helper Queries'
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup dim
+
+	annotation PBI_QueryGroupOrder = 4
+
+/// not used anymore
+queryGroup old
+
+	annotation PBI_QueryGroupOrder = 3
+
+queryGroup 'Transform File from reports'
+
+	annotation PBI_QueryGroupOrder = 1
+
+queryGroup 'Transform File from reports\Helper Queries'
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup 'Transform File from reports (2)'
+
+	annotation PBI_QueryGroupOrder = 2
+
+queryGroup 'Transform File from reports (2)\Helper Queries'
+
+	annotation PBI_QueryGroupOrder = 0
+
+annotation PBI_QueryOrder = ["old_user","old_group","fact_UsersFromAD","fact_UsersFromQAD","fact_UsersFromGraphJSON","fact_UsersLicensesAll","fact_UsersFromQADToAppend","fact_ManagerAccess","dim_Department","dim_Licenses","dimUserOld","dimUserOld2","Users_fromGraph","fact_HRSecurity","Parameter1","Transform Sample File","Sample File","Transform File","Sample File (2)","Parameter2","Transform Sample File (2)","Transform File (2)","Sample File (3)","Parameter3","Transform Sample File (3)","Transform File (3)","dim_User","fact_UsersFromGraphJSONToAppend","mapping_Licenses"]
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table DateTableTemplate_aa2deb27-1376-4ea6-91ef-48bbc098c80e
+ref table dim_Calendar
+ref table fact_UsersFromAD
+ref table dim_MeasuresUsers
+ref table fact_UsersFromQAD
+ref table fact_UsersLicensesAll
+ref table LocalDateTable_07055012-6a8b-4480-9e3e-2273943839a3
+ref table LocalDateTable_6f44ce91-ee83-40d1-a02e-5e1dc8a21090
+ref table fact_HRSecurity
+ref table LocalDateTable_bad7dc21-8f42-461a-9c95-6ef3adec2a6a
+ref table dim_Department
+ref table dim_Licenses
+ref table fact_UsersFromQADToAppend
+ref table fact_UsersFromGraphJSON
+ref table dim_User
+ref table fact_UsersFromGraphJSONToAppend
+ref table fact_ManagerAccess
+ref table mapping_Licenses
+
+ref role Manager
+
+ref cultureInfo en-US
+

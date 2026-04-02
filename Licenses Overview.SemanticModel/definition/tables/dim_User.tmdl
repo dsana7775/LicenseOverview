@@ -1,0 +1,139 @@
+/// Main user table used for people reporting, business unit analysis, and security logic.
+table dim_User
+	lineageTag: 5e12c277-c9a4-47d1-b8ef-ad2224ae214f
+
+	/// Short user identifier used for matching and row-level security.
+	column Initials
+		dataType: string
+		lineageTag: 2eacb403-baf8-437c-864b-cf081ad30509
+		summarizeBy: none
+		sourceColumn: Initials
+
+		annotation SummarizationSetBy = Automatic
+
+	/// User name shown in reports and slicers.
+	column 'Display Name'
+		dataType: string
+		lineageTag: 341a752d-23c3-4561-8526-c2134afcc246
+		summarizeBy: none
+		sourceColumn: Display Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Primary email address for the user.
+	column Mail
+		dataType: string
+		lineageTag: f6f97f81-08f6-4af7-adf4-be92c105c689
+		summarizeBy: none
+		sourceColumn: Mail
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Sign-in name used to identify the user across systems.
+	column UPN
+		dataType: string
+		lineageTag: cfbd9321-96c0-4120-a30b-bfd2457ed75b
+		summarizeBy: none
+		sourceColumn: UPN
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Company assigned to the user.
+	column Company
+		dataType: string
+		lineageTag: 6b8c09d0-b4de-4f09-acfb-df27f6447657
+		summarizeBy: none
+		sourceColumn: Company
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Business unit assigned to the user.
+	column 'Business Unit'
+		dataType: string
+		lineageTag: 8292f4b2-88b3-4212-9f61-e3671b008230
+		summarizeBy: none
+		sourceColumn: Business Unit
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Department assigned to the user.
+	column Department
+		dataType: string
+		lineageTag: 4fdbed8b-d799-424c-a646-38b42dd927f7
+		summarizeBy: none
+		sourceColumn: Department
+
+		annotation SummarizationSetBy = Automatic
+
+	column distinguishedName
+		dataType: string
+		lineageTag: 7c89a448-8de7-4a67-8c38-dfbd2ac3b188
+		summarizeBy: none
+		sourceColumn: distinguishedName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Source system that supplied the user record.
+	column DataSource
+		dataType: string
+		lineageTag: eb1f842a-7ee6-4205-a1c2-26636589fa25
+		summarizeBy: none
+		sourceColumn: DataSource
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dimUser = m
+		mode: import
+		queryGroup: dim
+		source =
+				let
+				    Source = ActiveDirectory.Domains("kompan.net"),
+				    #"kompan net" = Source{[Domain="kompan.net"]}[Object Categories],
+				    user = #"kompan net"{[Category="user"]}[Objects],
+				    #"Expanded organizationalPerson" = Table.ExpandRecordColumn(user, "organizationalPerson", {"company", "department"}, {"company", "department"}),
+				    #"Sorted Rows" = Table.Sort(#"Expanded organizationalPerson",{{"displayName", Order.Ascending}}),
+				    #"Removed Errors" = Table.RemoveRowsWithErrors(#"Sorted Rows", {"company"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Errors",{{"displayName", "Display Name"}, {"company", "Company"}, {"department", "Department"}}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Renamed Columns","KOMPAN SA","KOMPAN SAS",Replacer.ReplaceText,{"Company"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","Kompan Danmark A/S","KOMPAN Danmark A/S",Replacer.ReplaceText,{"Company"}),
+				    #"Replaced Value2" = Table.ReplaceValue(#"Replaced Value1","KOMPAN SASS (France)","KOMPAN SAS",Replacer.ReplaceText,{"Company"}),
+				    #"Replaced Value3" = Table.ReplaceValue(#"Replaced Value2","KOMPAN SASS","KOMPAN SAS",Replacer.ReplaceText,{"Company"}),
+				    #"Replaced Value4" = Table.ReplaceValue(#"Replaced Value3","COROCORD Raumnetz GmbH","KOMPAN GmbH (DE)",Replacer.ReplaceText,{"Company"}),
+				    #"Replaced Value5" = Table.ReplaceValue(#"Replaced Value4","Slottsbro AB","KOMPAN Sverige AB",Replacer.ReplaceText,{"Company"}),
+				    #"Replaced Value6" = Table.ReplaceValue(#"Replaced Value5","KOMPAN Ireland Ltd","KOMPAN Ireland Ltd.",Replacer.ReplaceText,{"Company"}),
+				    #"Replaced Value7" = Table.ReplaceValue(#"Replaced Value6","OOO KOMPAN Russia","ООО KOMPAN Russia",Replacer.ReplaceText,{"Company"}),
+				    #"Replaced Value8" = Table.ReplaceValue(#"Replaced Value7","KOMPAN Ireland Ltd..","KOMPAN Ireland Ltd.",Replacer.ReplaceText,{"Company"}),
+				    #"Replaced Value9" = Table.ReplaceValue(#"Replaced Value8","KOMPAN NV/SA","KOMPAN N.V. (Belgium)",Replacer.ReplaceText,{"Company"}),
+				    #"Replaced Value10" = Table.ReplaceValue(#"Replaced Value9","KOMPAN Playscape Pty. Ltd","KOMPAN Australia Pty Ltd",Replacer.ReplaceText,{"Company"}),
+				    #"Replaced Value11" = Table.ReplaceValue(#"Replaced Value10","Kompan Designstudio and Manufacturing Berlin GmbH","KOMPAN GmbH (DE)",Replacer.ReplaceText,{"Company"}),
+				    #"Replaced Value12" = Table.ReplaceValue(#"Replaced Value11","Kompan Sverige AB","KOMPAN Sverige AB",Replacer.ReplaceText,{"Company"}),
+				    #"Replaced Value13" = Table.ReplaceValue(#"Replaced Value12","KOMPAN Manufacturing Poland sp. Z.o.o.","KOMPAN Manufacturing Poland sp. z o.o.",Replacer.ReplaceText,{"Company"}),
+				    #"Replaced Value14" = Table.ReplaceValue(#"Replaced Value13","Kompan Inc.","KOMPAN Inc.",Replacer.ReplaceText,{"Company"}),
+				    #"Replaced Value15" = Table.ReplaceValue(#"Replaced Value14","KOMPAN Czech Republic s.r.o.","Kompan Czech Republic s.r.o.",Replacer.ReplaceText,{"Company"}),
+				    #"Conditional: Company to BU" = Table.AddColumn(#"Replaced Value15", "Business Unit", each if [Company] = "KOMPAN Danmark A/S" then "DK1" else if [Company] = "KOMPAN Steel Manufacturing s.r.o." then "CZ2" else if [Company] = "KOMPAN Commercial Systems S.A." then "BE1" else if [Company] = "KOMPAN Scotland Ltd." then "UK1" else if [Company] = "KOMPAN Ltd." then "UK" else if [Company] = "Kompan Ltd." then "UK" else if [Company] = "KOMPAN A/S" then "DK" else if [Company] = "KOMPAN Manufacturing Poland sp. z o.o." then "PL" else if [Company] = "KOMPAN Commercial Systems" then "BE1" else if [Company] = "Kompan Czech Republic s.r.o." then "CZ" else if [Company] = "Juegos KOMPAN S.A." then "ES" else if [Company] = "KOMPAN Australia Pty Ltd" then "AU" else if [Company] = "KOMPAN Sverige AB" then "SE" else if [Company] = "KOMPAN Playgrounds (Shanghai) Co. Ltd" then "CN" else if [Company] = "KOMPAN Italia Srl." then "IT" else if [Company] = "KOMPAN SAS (France)" then "FR" else if [Company] = "KOMPAN, Inc." then "US" else if [Company] = "KOMPAN BV" then "NL" else if [Company] = "KOMPAN GmbH (DE)" then "DE" else if [Company] = "KOMPAN Inc." then "US" else if [Company] = "Kompan GmbH" then "DE" else if [Company] = "KOMPAN Ireland Ltd." then "IE" else if [Company] = "Juegos Kompan S.A." then "ES" else if [Company] = "KOMPAN SAS" then "FR" else if [Company] = "KOMPAN Suomi Oy" then "FI" else if [Company] = "ООО KOMPAN Russia" then "RU" else if [Company] = "Kompan Italia S.r.l." then "IT" else if [Company] = "KOMPAN B.V." then "NL" else if [Company] = "KOMPAN Norge AS" then "NO" else if [Company] = "KOMPAN N.V. (Belgium)" then "BE" else if [Company] = "KOMPAN Asia Pte. Ltd." then "SG" else if [Company] = "Repcon BV" then "NL" else if [Company] = "KOMPAN Austria GmbH" then "AT" else if [Company] = "KOMPAN MEA Commercial Brokers LLC" then "AE" else if [Company] = "KOMPAN GmbH (CH)" then "CH" else if [Company] = "KOMPAN CSA" then "DK" else if [Department] = "Switzerland" then "CH" else if [Company] = "Kompan A/S" then "DK" else if [Company] = "KOMPAN A/S (DK)" then "DK" else if [Company] = "KOMPAN Korea Co. Ltd." then "KR" else if [Company] = "KOMPAN Malaysia Sdn. Bhd." then "MY" else if [Company] = "KOMPAN Playscapes Inc." then "CA" else if [Company] = "KOMPAN A/S" then "DK" else "_E"),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Conditional: Company to BU",{"Display Name", "user", "Company", "Business Unit", "Department", "person", "top", "posixAccount", "shadowAccount", "msExchOmaUser", "msExchBaseClass", "msExchCertificateInformation", "msExchIMRecipient", "msExchMultiMediaUser", "msExchMailStorage", "msExchCustomAttributes", "msDS-CloudExtensions", "securityPrincipal", "mailRecipient", "distinguishedName"}),
+				    #"Expanded user" = Table.ExpandRecordColumn(#"Reordered Columns", "user", {"mail", "userPrincipalName"}, {"user.mail", "user.userPrincipalName"}),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Expanded user",{{"user.userPrincipalName", "UPN"}, {"user.mail", "Mail"}}),
+				    #"Filtered Rows1" = Table.SelectRows(#"Renamed Columns1", each [UPN] <> null and [UPN] <> ""),
+				    #"Uppercased Text" = Table.TransformColumns(#"Filtered Rows1",{{"UPN", Text.Upper, type text}}),
+				    #"Trimmed Text" = Table.TransformColumns(#"Uppercased Text",{{"UPN", Text.Trim, type text}}),
+				    #"Cleaned Text" = Table.TransformColumns(#"Trimmed Text",{{"UPN", Text.Clean, type text}}),
+				    #"Appended Query" = Table.Combine({#"Cleaned Text", fact_UsersFromQADToAppend}),
+				    #"Reordered Columns2" = Table.ReorderColumns(#"Appended Query",{"Display Name", "UPN", "Business Unit", "Company", "Department", "distinguishedName"}),
+				    #"Replaced Value16" = Table.ReplaceValue(#"Reordered Columns2",".COM",".NET",Replacer.ReplaceText,{"UPN"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Replaced Value16", {"UPN"}),
+				    #"Added Custom" = Table.AddColumn(#"Removed Duplicates", "Initials1", each Text.Lower(Text.BeforeDelimiter([UPN], "@"))),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Custom",{"Initials"}),
+				    #"Reordered Columns1" = Table.ReorderColumns(#"Removed Columns",{"Initials1", "Display Name", "Mail", "UPN", "Business Unit", "Company", "Department", "person", "top", "posixAccount", "shadowAccount", "msExchOmaUser", "msExchBaseClass", "msExchCertificateInformation", "msExchIMRecipient", "msExchMultiMediaUser", "msExchMailStorage", "msExchCustomAttributes", "msDS-CloudExtensions", "securityPrincipal", "mailRecipient", "distinguishedName"}),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Reordered Columns1",{"Initials1", "Display Name", "Mail", "UPN", "Company", "Business Unit", "Department", "distinguishedName", "DataSource"}),
+				    #"Renamed Columns2" = Table.RenameColumns(#"Removed Other Columns",{{"Initials1", "Initials"}}),
+				    #"Trimmed Text1" = Table.TransformColumns(#"Renamed Columns2",{{"Initials", Text.Trim, type text}}),
+				    #"Appended Query1" = Table.Combine({#"Trimmed Text1", fact_UsersFromGraphJSONToAppend}),
+				    #"Removed Duplicates1" = Table.Distinct(#"Appended Query1", {"Initials"})
+				in
+				    #"Removed Duplicates1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

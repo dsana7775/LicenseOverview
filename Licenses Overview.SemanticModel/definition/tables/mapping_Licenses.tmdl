@@ -1,0 +1,33 @@
+table mapping_Licenses
+	lineageTag: 4a24e85f-8f92-4386-834c-f1a150442161
+
+	column 'Group Member'
+		dataType: string
+		lineageTag: 8ef108ce-9d9b-4dba-b795-3b3aec733369
+		summarizeBy: none
+		sourceColumn: Group Member
+
+		annotation SummarizationSetBy = Automatic
+
+	column License
+		dataType: string
+		lineageTag: 53cfad38-c457-48da-b830-cab00f8bca08
+		summarizeBy: none
+		sourceColumn: License
+
+		annotation SummarizationSetBy = Automatic
+
+	partition mapping_Licenses = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("rZTBUtswEIZfRcOJzhDSQuFuLDO4sSNjJdCW4SBsQTSRJY8kU7j1HfqGfZKulNilECiHnCz9++1qtdr11dVOhMlJMrfcWDRCUWX0DXOoMBrheGdvZfXy/h4qFtpp+KZSdv6jMLfiTqFdK9Sd5Ii17Yed671XQlLHVM1Mva24nrbOMKfNduKtsa0EC152odvtRDO8Edxw/yxbCRgbzpy45yiWuquHkEFei2iXSend7QZ/2t1YeM6Ko0OMYi0lr5zQ6n2B5jOCEzoJsbxH53TF6vFhDS3S1UKjnD2Muav2A35CvvYkLPcr3QT5dE5T0hvCJshZTnsRlofHR2gMhWI1bx6DPee16GxARhPdtExFFNiVHIjzCPcRYBkkKkXzeVSUBIPoNxYyXq5MJEvxJSknw7FUS1GjS22WdkwbZhxnzbjAecAvUooKbm61aXz1AH+ueApD3n2liZJCeTAuc7hLThF+VKwRlUVABXwaXRx8/HTcJwDblyA66aAhuLUo5gqGRvZ3HdHzrOStFBV7cm3faAdora8KR6Y4+tYjq93wGLmAGbf61oWjkiNPPJU2QBH0A4Jbo0Q5blojLN/oRSfJLD6bF0N5l9AZi3kbRsEDRZb3NliufJLyIo2Tp01GubkXFYfhWKJCrp86JtPTbJ5M42ToRSeZtYKpTXb/L6sbocT6r/MehyInL6gvaRltPnCwoN8/f/3vsFmZZBl5JfPvo/IsnZKRn012o4cQ5UIoXXEo8r8c5vdc6pa/CZEf6m2gT+aZPU/LIc+/63CHJMpnUZqRsrfPYFwcExJ+6tfXfwA=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Group Member" = _t, License = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Group Member", type text}, {"License", type text}}),
+				    #"Sorted Rows" = Table.Sort(#"Changed Type",{{"License", Order.Ascending}})
+				in
+				    #"Sorted Rows"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

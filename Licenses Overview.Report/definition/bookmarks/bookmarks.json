@@ -1,0 +1,21 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmarksMetadata/1.0.0/schema.json",
+  "items": [
+    {
+      "name": "87cfb1c2a385aefea300",
+      "displayName": "Users Overview",
+      "children": [
+        "b555f144b726ceb36b81",
+        "d29e0f8ed4a5b0d146d4"
+      ]
+    },
+    {
+      "name": "ec1557e8450dd405f8a0",
+      "displayName": "Licenses",
+      "children": [
+        "7601bdb628db325f98ca",
+        "905658fea0e1a989edc3"
+      ]
+    }
+  ]
+}

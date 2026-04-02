@@ -1,0 +1,520 @@
+expression old_user =
+		let
+		    Source = ActiveDirectory.Domains("kompan.net"),
+		    #"kompan net" = Source{[Domain="kompan.net"]}[Object Categories],
+		    group = #"kompan net"{[Category="group"]}[Objects],
+		    #"Sorted Rows" = Table.Sort(group,{{"displayName", Order.Ascending}}),
+		    #"Expanded group" = Table.ExpandRecordColumn(#"Sorted Rows", "group", {"member"}, {"group.member"}),
+		    #"Expanded group.member" = Table.ExpandListColumn(#"Expanded group", "group.member"),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Expanded group.member",{"displayName", "group.member"}),
+		    #"Expanded group.member1" = Table.ExpandRecordColumn(#"Reordered Columns", "group.member", {"displayName", "givenName", "mail", "mobile", "c", "company", "countryCode", "department", "l", "middleName", "postalAddress", "postalCode", "streetAddress", "title", "sn", "distinguishedName", "whenChanged", "whenCreated", "extensionAttribute2", "extensionAttribute3"}, {"group.member.displayName", "group.member.givenName", "group.member.mail", "group.member.mobile", "group.member.c", "group.member.company", "group.member.countryCode", "group.member.department", "group.member.l", "group.member.middleName", "group.member.postalAddress", "group.member.postalCode", "group.member.streetAddress", "group.member.title", "group.member.sn", "group.member.distinguishedName", "group.member.whenChanged", "group.member.whenCreated", "group.member.extensionAttribute2", "group.member.extensionAttribute3"}),
+		    #"Renamed Columns" = Table.RenameColumns(#"Expanded group.member1",{{"group.member.displayName", "TheDisplayName"}, {"group.member.givenName", "FirstName"}, {"group.member.mail", "Mail"}, {"group.member.mobile", "Mobile"}, {"group.member.c", "CountryNameCode"}, {"group.member.company", "Company"}, {"group.member.countryCode", "CountryNameCodeNumber"}, {"group.member.department", "Department"}, {"group.member.l", "City"}, {"group.member.middleName", "MiddleName"}, {"group.member.postalAddress", "PostalAddress"}, {"group.member.postalCode", "PostalCode"}, {"group.member.streetAddress", "StreetAddress"}, {"group.member.title", "Title"}, {"group.member.sn", "LastName"}, {"group.member.distinguishedName", "MemberDistinguishedName"}, {"group.member.whenChanged", "WhenChanged"}, {"group.member.whenCreated", "WhenCreated"}}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"WhenCreated", type datetime}, {"WhenChanged", type datetime}}),
+		    #"Renamed Columns1" = Table.RenameColumns(#"Changed Type",{{"group.member.extensionAttribute2", "ExtensionAttribute2"}, {"group.member.extensionAttribute3", "ExtensionAttribute3"}}),
+		    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns1",{"MemberDistinguishedName"}),
+		    #"Expanded top" = Table.ExpandRecordColumn(#"Removed Columns", "top", {"cn"}, {"top.cn"}),
+		    #"Renamed Columns2" = Table.RenameColumns(#"Expanded top",{{"top.cn", "Group"}}),
+		    #"Reordered Columns1" = Table.ReorderColumns(#"Renamed Columns2",{"displayName", "TheDisplayName", "FirstName", "LastName", "Mail", "Mobile", "CountryNameCode", "Company", "CountryNameCodeNumber", "Department", "City", "MiddleName", "PostalAddress", "PostalCode", "StreetAddress", "Title", "WhenChanged", "WhenCreated", "ExtensionAttribute2", "ExtensionAttribute3", "Group", "msExchMailStorage", "posixGroup", "msExchIMRecipient", "msExchBaseClass", "msExchCustomAttributes", "mailRecipient", "securityPrincipal", "distinguishedName"}),
+		    #"Changed Type1" = Table.TransformColumnTypes(#"Reordered Columns1",{{"WhenCreated", type date}, {"WhenChanged", type date}})
+		in
+		    #"Changed Type1"
+	lineageTag: a1765f6d-5e90-4ade-a4bd-64953988a0cf
+	queryGroup: old
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+
+expression old_group =
+		let
+		    Source = ActiveDirectory.Domains("kompan.net"),
+		    kompan.net = Source{[Domain="kompan.net"]}[#"Object Categories"],
+		    group1 = kompan.net{[Category="group"]}[Objects],
+		    #"Expanded group" = Table.ExpandRecordColumn(group1, "group", {"groupType", "member"}, {"groupType", "member"}),
+		    #"Expanded top" = Table.ExpandRecordColumn(#"Expanded group", "top", {"cn", "description"}, {"cn", "description"}),
+		    #"Sorted Rows" = Table.Sort(#"Expanded top",{{"cn", Order.Ascending}}),
+		    #"Expanded member" = Table.ExpandListColumn(#"Sorted Rows", "member"),
+		    #"Expanded member1" = Table.ExpandRecordColumn(#"Expanded member", "member", {"displayName", "mail", "manager", "mobile", "o", "c", "co"}, {"displayName.1", "mail", "manager", "mobile", "o", "c", "co"}),
+		    #"Renamed Columns" = Table.RenameColumns(#"Expanded member1",{{"mail", "Mail"}, {"manager", "Manager"}, {"mobile", "Mobile"}, {"co", "Country"}, {"c", "CountryCode"}, {"distinguishedName", "DistinguishedName"}, {"cn", "Group"}}),
+		    #"Expanded Manager" = Table.ExpandRecordColumn(#"Renamed Columns", "Manager", {"displayName"}, {"Manager.displayName"}),
+		    #"Renamed Columns1" = Table.RenameColumns(#"Expanded Manager",{{"Manager.displayName", "Manager"}})
+		in
+		    #"Renamed Columns1"
+	lineageTag: aa940d14-2ed7-4be5-933f-a61d01beda03
+	queryGroup: old
+
+	annotation PBI_ResultType = Exception
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression dimUserOld = ```
+		let
+		    Source = ActiveDirectory.Domains("kompan.net"),
+		    kompan.net = Source{[Domain="kompan.net"]}[#"Object Categories"],
+		    user1 = kompan.net{[Category="user"]}[Objects],
+		    #"Expanded top1" = Table.ExpandRecordColumn(user1, "top", {"memberOf", "whenChanged", "whenCreated"}, {"top.memberOf", "top.whenChanged", "top.whenCreated"}),
+		    #"Expanded top.memberOf2" = Table.ExpandListColumn(#"Expanded top1", "top.memberOf"),
+		    #"Expanded top.memberOf3" = Table.ExpandRecordColumn(#"Expanded top.memberOf2", "top.memberOf", {"cn", "displayName"}, {"top.memberOf.cn", "top.memberOf.displayName"}),
+		    #"Sorted Rows2" = Table.Sort(#"Expanded top.memberOf3",{{"displayName", Order.Ascending}}),
+		    #"Filtered Rows" = Table.SelectRows(#"Sorted Rows2", each ([top.memberOf.cn] <> null)),
+		    #"Expanded user" = Table.ExpandRecordColumn(#"Filtered Rows", "user", {"givenName", "mail", "manager", "mobile", "userPrincipalName"}, {"user.givenName", "user.mail", "user.manager", "user.mobile", "user.userPrincipalName"}),
+		    #"Removed Duplicates3" = Table.Distinct(#"Expanded user", {"user.userPrincipalName"}),
+		    #"Expanded user.manager" = Table.ExpandRecordColumn(#"Removed Duplicates3", "user.manager", {"displayName"}, {"user.manager.displayName"}),
+		    #"Expanded person" = Table.ExpandRecordColumn(#"Expanded user.manager", "person", {"sn"}, {"person.sn"}),
+		    #"Expanded organizationalPerson" = Table.ExpandRecordColumn(#"Expanded person", "organizationalPerson", {"c", "co", "company", "countryCode", "department", "l", "postalCode", "streetAddress", "title"}, {"organizationalPerson.c", "organizationalPerson.co", "organizationalPerson.company", "organizationalPerson.countryCode", "organizationalPerson.department", "organizationalPerson.l", "organizationalPerson.postalCode", "organizationalPerson.streetAddress", "organizationalPerson.title"}),
+		    #"Replaced Value1" = Table.ReplaceValue(#"Expanded organizationalPerson","Kompan A/S","KOMPAN A/S",Replacer.ReplaceValue,{"organizationalPerson.company"}),
+		    #"Replaced Value2" = Table.ReplaceValue(#"Replaced Value1","Kompan Danmark A/S","KOMPAN Danmark A/S",Replacer.ReplaceText,{"organizationalPerson.company"}),
+		    #"Expanded msExchCustomAttributes" = Table.ExpandRecordColumn(#"Replaced Value2", "msExchCustomAttributes", {"extensionAttribute2", "extensionAttribute3"}, {"msExchCustomAttributes.extensionAttribute2", "msExchCustomAttributes.extensionAttribute3"}),
+		    #"Renamed Columns" = Table.RenameColumns(#"Expanded msExchCustomAttributes",{{"displayName", "DisplayName"}, {"user.givenName", "FirstName"}, {"user.mail", "Mail"}, {"user.manager.displayName", "Manager"}, {"user.mobile", "PhoneNumber"}, {"user.userPrincipalName", "UPN"}, {"organizationalPerson.c", "CountryCode"}, {"organizationalPerson.co", "Country"}, {"organizationalPerson.countryCode", "CountryCodeNumber"}, {"organizationalPerson.department", "Department"}, {"organizationalPerson.l", "City"}, {"organizationalPerson.postalCode", "PostalCode"}, {"organizationalPerson.streetAddress", "StreetAddress"}, {"organizationalPerson.title", "Title"}, {"person.sn", "LastName"}, {"top.memberOf.cn", "GroupMember"}, {"top.whenChanged", "WhenChangedDate"}, {"top.whenCreated", "WhenCreatedDate"}}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"WhenChangedDate", type date}, {"WhenCreatedDate", type date}}),
+		    #"Renamed Columns1" = Table.RenameColumns(#"Changed Type",{{"msExchCustomAttributes.extensionAttribute3", "ExtensionAttribute3"}, {"msExchCustomAttributes.extensionAttribute2", "ExtensionAttribute2"}}),
+		    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns1",{"posixAccount", "shadowAccount", "msExchOmaUser", "msExchBaseClass", "msExchCertificateInformation", "msExchIMRecipient", "msExchMultiMediaUser", "msExchMailStorage", "securityPrincipal", "mailRecipient"}),
+		    #"Renamed Columns2" = Table.RenameColumns(#"Removed Columns",{{"DisplayName", "DisplayName"}}),
+		    #"Removed Columns1" = Table.RemoveColumns(#"Renamed Columns2",{"top.memberOf.displayName"}),
+		    #"Filtered Rows1" = Table.SelectRows(#"Removed Columns1", each true),
+		    #"Duplicated Column" = Table.DuplicateColumn(#"Filtered Rows1", "Mail", "Mail - Copy"),
+		    #"Split Column by Delimiter" = Table.SplitColumn(#"Duplicated Column", "Mail - Copy", Splitter.SplitTextByEachDelimiter({"@"}, QuoteStyle.Csv, true), {"Mail - Copy.1", "Mail - Copy.2"}),
+		    #"Changed Type1" = Table.TransformColumnTypes(#"Split Column by Delimiter",{{"Mail - Copy.1", type text}, {"Mail - Copy.2", type text}}),
+		    #"Removed Columns2" = Table.RemoveColumns(#"Changed Type1",{"Mail - Copy.1"}),
+		    #"Renamed Columns3" = Table.RenameColumns(#"Removed Columns2",{{"Mail - Copy.2", "Domain"}}),
+		    #"Lowercased Text" = Table.TransformColumns(#"Renamed Columns3",{{"Domain", Text.Lower, type text}}),
+		    #"Replaced Value" = Table.ReplaceValue(#"Lowercased Text",null,"No value",Replacer.ReplaceValue,{"Domain"}),
+		    #"Added Conditional Column" = Table.AddColumn(#"Replaced Value", "Internal User", each if Text.Contains([Domain], "kompan") then "Yes" else "No"),
+		    #"Removed Duplicates" = Table.Distinct(#"Added Conditional Column", {"UPN"}),
+		    #"Removed Columns4" = Table.RemoveColumns(#"Removed Duplicates",{"msDS-CloudExtensions"}),
+		    #"Renamed Columns5" = Table.RenameColumns(#"Removed Columns4",{{"organizationalPerson.company", "Company"}}),
+		    #"Replaced Value3" = Table.ReplaceValue(#"Renamed Columns5","KOMPAN, Inc.","KOMPAN Inc.",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value4" = Table.ReplaceValue(#"Replaced Value3","KOMPAN SAS","KOMPAN SAS (France)",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value5" = Table.ReplaceValue(#"Replaced Value4","KOMPAN SA","KOMPAN SAS (France)",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value6" = Table.ReplaceValue(#"Replaced Value5","KOMPAN SAS (France)S (France)","KOMPAN SAS (France)",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value8" = Table.ReplaceValue(#"Replaced Value6","KOMPAN SAS (France)S (France) (France)","KOMPAN SAS (France)",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value9" = Table.ReplaceValue(#"Replaced Value8","Kompan Italia S.r.l.","KOMPAN Italia S.r.l.",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value10" = Table.ReplaceValue(#"Replaced Value9","KOMPAN Italia Srl.","KOMPAN Italia S.r.l.",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value7" = Table.ReplaceValue(#"Replaced Value10","Kompan Sverige AB","KOMPAN Sverige AB",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value11" = Table.ReplaceValue(#"Replaced Value7","KOMPAN SAS (France) (France)","KOMPAN SAS (France)",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value12" = Table.ReplaceValue(#"Replaced Value11","Juegos Kompan S.A.","Juegos KOMPAN S.A.",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value13" = Table.ReplaceValue(#"Replaced Value12","KOMPAN Commercial Systems","KOMPAN Commercial Systems S.A.",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value16" = Table.ReplaceValue(#"Replaced Value13","KOMPAN Commercial Systems S.A. S.A.","KOMPAN Commercial Systems S.A.",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value14" = Table.ReplaceValue(#"Replaced Value16","KOMPAN B.V.","KOMPAN BV",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value17" = Table.ReplaceValue(#"Replaced Value14","Kompan GmbH","KOMPAN GmbH",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value18" = Table.ReplaceValue(#"Replaced Value17","KOMPAN GmbH (DE)","Kompan GmbH",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value19" = Table.ReplaceValue(#"Replaced Value18","KOMPAN Ireland Ltd.","KOMPAN Ireland Ltd",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value15" = Table.ReplaceValue(#"Replaced Value19","KOMPAN Manufacturing Poland sp. z o.o.","KOMPAN Manufacturing Poland sp. Z.o.o.",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value20" = Table.ReplaceValue(#"Replaced Value15","Kompan GmbH","KOMPAN GmbH",Replacer.ReplaceText,{"Company"}),
+		    #"New Country Code col." = Table.AddColumn(#"Replaced Value20", "Country Code New", each let
+		    CompanyToCountry = [
+		        #"Kompan Czech Republic s.r.o." = "CZ",
+		        #"KOMPAN Steel Manufacturing s.r.o." = "CZ",
+		        #"KOMPAN A/S" = "DK",
+		        #"Juegos KOMPAN S.A." = "ES",
+		        #"KOMPAN Commercial Systems S.A." = "BE",
+		        #"KOMPAN Australia Pty Ltd" = "AU",
+		        #"KOMPAN Ltd." = "UK",
+		        #"Kompan Ltd." = "UK",
+		        #"KOMPAN Danmark A/S" = "DK",
+		        #"KOMPAN Sverige AB" = "SE",
+		        #"KOMPAN Manufacturing Poland sp. Z.o.o." = "PL",
+		        #"KOMPAN Italia S.r.l." = "IT",
+		        #"KOMPAN SAS (France)" = "FR",
+		        #"KOMPAN Inc." = "US",
+		        #"KOMPAN BV" = "NL",
+		        #"OOO KOMPAN Russia" = "RU",
+		        #"KOMPAN GmbH" = "DE",
+		        #"KOMPAN Ireland Ltd" = "UK",
+		        #"KOMPAN Playscape Pty. Ltd" = "AU",
+		        #"KOMPAN Scotland Ltd." = "UK",
+		        #"Repcon BV" = "NL",
+		        #"KOMPAN NV/SA" = "BE",
+		        #"KOMPAN Suomi Oy" = "FI",
+		        #"KOMPAN Norge AS" = "NO",
+		        #"KOMPAN N.V. (Belgium)" = "BE",
+		        #"COROCORD Raumnetz GmbH" = "DE",
+		        #"Kompan Designstudio and Manufacturing Berlin GmbH" = "DE",
+		        #"KOMPAN Playgrounds (Shanghai) Co. Ltd" = "CN",
+		        #"KOMPAN Asia Pte. Ltd." = "SG",
+		        #"KOMPAN Austria GmbH" = "AT",
+		        #"KOMPAN MEA Commercial Brokers LLC" = "AE"
+		        // přidejte další společnosti a kódy zemí
+		    ]
+		in
+		    if [CountryCode] = null and [Company] <> null and Record.HasFields(CompanyToCountry, [Company]) 
+		    then Record.Field(CompanyToCountry, [Company]) 
+		    else [CountryCode]),
+		    #"Reordered Columns5" = Table.ReorderColumns(#"New Country Code col.",{"DisplayName", "FirstName", "Mail", "Manager", "PhoneNumber", "UPN", "CountryCode", "Country Code New", "Country", "Company", "CountryCodeNumber", "Department", "City", "PostalCode", "StreetAddress", "Title", "LastName", "GroupMember", "WhenChangedDate", "WhenCreatedDate", "ExtensionAttribute2", "ExtensionAttribute3", "distinguishedName", "Domain", "Internal User"}),
+		    #"Conditional: Company to BU" = Table.AddColumn(#"Reordered Columns5", "Business Unit", each if [Company] = "KOMPAN Danmark A/S" then "DK1" else if [Company] = "KOMPAN Steel Manufacturing s.r.o." then "CZ2" else if [Company] = "KOMPAN Commercial Systems S.A." then "BE1" else if [Company] = "KOMPAN Scotland Ltd." then "UK1" else if [Company] = "KOMPAN Ltd." then "UK" else if [Company] = "Kompan Ltd." then "UK" else [CountryCode]),
+		    #"New BU col." = Table.AddColumn(#"Conditional: Company to BU", "Business Unit New", each let
+		    CompanyToBU = [
+		        #"Kompan Czech Republic s.r.o." = "CZ",
+				#"KOMPAN Steel Manufacturing s.r.o." = "CZ2",
+		        #"KOMPAN A/S" = "DK",
+		        #"Juegos KOMPAN S.A." = "ES",
+		        #"KOMPAN Commercial Systems S.A." = "BE1",
+		        #"KOMPAN Australia Pty Ltd" = "AU",
+		        #"KOMPAN Ltd." = "UK",
+				#"Kompan Ltd." = "UK",
+		        #"KOMPAN Danmark A/S" = "DK1",
+		        #"KOMPAN Sverige AB" = "SE",
+		        #"KOMPAN Manufacturing Poland sp. Z.o.o." = "PL",
+		        #"KOMPAN Italia S.r.l." = "IT",
+		        #"KOMPAN SAS (France)" = "FR",
+		        #"KOMPAN Inc." = "US",
+		        #"KOMPAN BV" = "NL",
+		        #"OOO KOMPAN Russia" = "RU",
+		        #"KOMPAN GmbH" = "DE",
+		        #"KOMPAN Ireland Ltd" = "UK",
+		        #"KOMPAN Playscape Pty. Ltd" = "AU",
+		        #"KOMPAN Scotland Ltd." = "UK1",
+		        #"Repcon BV" = "NL",
+		        #"KOMPAN NV/SA" = "BE",
+		        #"KOMPAN Suomi Oy" = "FI",
+		        #"KOMPAN Norge AS" = "NO",
+		        #"KOMPAN N.V. (Belgium)" = "BE",
+		        #"COROCORD Raumnetz GmbH" = "DE",
+		        #"Kompan Designstudio and Manufacturing Berlin GmbH" = "DE",
+		        #"KOMPAN Playgrounds (Shanghai) Co. Ltd" = "CN",
+		        #"KOMPAN Asia Pte. Ltd." = "SG",
+		        #"KOMPAN Austria GmbH" = "AT",
+		        #"KOMPAN MEA Commercial Brokers LLC" = "AE"
+		        // přidejte další společnosti a kódy zemí
+		    ]
+		in
+		    if [Business Unit] = null and [Company] <> null and Record.HasFields(CompanyToBU, [Company]) 
+		    then Record.Field(CompanyToBU, [Company]) 
+		    else [Business Unit]),
+		    #"Removed Columns5" = Table.RemoveColumns(#"New BU col.",{"Business Unit"}),
+		    #"Reordered Columns1" = Table.ReorderColumns(#"Removed Columns5",{"DisplayName", "FirstName", "Mail", "Manager", "PhoneNumber", "UPN", "CountryCode", "Country Code New", "Business Unit New", "Country", "Company", "CountryCodeNumber", "Department", "City", "PostalCode", "StreetAddress", "Title", "LastName", "GroupMember", "WhenChangedDate", "WhenCreatedDate", "ExtensionAttribute2", "ExtensionAttribute3", "distinguishedName", "Domain", "Internal User"}),
+		    #"Removed Columns6" = Table.RemoveColumns(#"Reordered Columns1",{"CountryCode"}),
+		    #"Conditional: Company to Country" = Table.AddColumn(#"Removed Columns6", "Country New", each if [Business Unit New] = "DK1" then "Denmark" else if [Company] = "Kompan Czech Republic s.r.o." then "Czech republic" else if [Company] = "KOMPAN A/S" then "Denmark" else if [Company] = "KOMPAN Scotland Ltd." then "United Kingdom" else if [Company] = "KOMPAN Ireland Ltd" then "Ireland" else if [Company] = "Juegos Kompan S.A." then "Spain" else if [Company] = "Juegos KOMPAN S.A." then "Spain" else if [Company] = "KOMPAN Manufacturing Poland sp. Z.o.o." then "Poland" else if [Company] = "Repcon BV" then "Netherland" else if [Company] = "KOMPAN Ltd." then "United Kingdom" else if [Company] = "KOMPAN GmbH" then "Germany" else if [Company] = "KOMPAN Australia Pty Ltd" then "Australia" else if [Company] = "KOMPAN Inc." then "USA" else if [Company] = "KOMPAN CSA" then "USA" else if [Company] = "KOMPAN Asia Pte. Ltd." then "Singapore" else if [Company] = "KOMPAN GmbH (CH)" then "Switzerland" else if [Company] = "KOMPAN Inc." then "USA" else if [Company] = "KOMPAN Italia S.r.l." then "Italy" else if [Company] = "KOMPAN MEA Commercial Brokers LLC" then "United Arab Emirates" else if [Company] = "KOMPAN Norge AS" then "Norway" else if [Company] = "KOMPAN Playgrounds (Shanghai) Co. Ltd" then "China" else if [Company] = "KOMPAN SAS (France)" then "France" else if [Company] = "KOMPAN Steel Manufacturing s.r.o." then "Czech republic" else if [Company] = "KOMPAN Sverige AB" then "Sweden" else [Country]),
+		    #"Renamed Columns4" = Table.RenameColumns(#"Conditional: Company to Country",{{"Country Code New", "Country Code"}, {"Business Unit New", "Business Unit"}}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Renamed Columns4",{"DisplayName", "FirstName", "Mail", "Manager", "PhoneNumber", "UPN", "Country Code", "Business Unit", "Country", "Country New", "Company", "CountryCodeNumber", "Department", "City", "PostalCode", "StreetAddress", "Title", "LastName", "GroupMember", "WhenChangedDate", "WhenCreatedDate", "ExtensionAttribute2", "ExtensionAttribute3", "distinguishedName", "Domain", "Internal User"}),
+		    #"Removed Columns3" = Table.RemoveColumns(#"Reordered Columns",{"Country"}),
+		    #"Renamed Columns6" = Table.RenameColumns(#"Removed Columns3",{{"Country New", "Country"}}),
+		    #"Duplicated Column1" = Table.DuplicateColumn(#"Renamed Columns6", "Mail", "Mail - Copy"),
+		    #"Split Column by Delimiter1" = Table.SplitColumn(#"Duplicated Column1", "Mail - Copy", Splitter.SplitTextByEachDelimiter({"@"}, QuoteStyle.Csv, false), {"Mail - Copy.1", "Mail - Copy.2"}),
+		    #"Changed Type2" = Table.TransformColumnTypes(#"Split Column by Delimiter1",{{"Mail - Copy.1", type text}, {"Mail - Copy.2", type text}}),
+		    #"Removed Columns7" = Table.RemoveColumns(#"Changed Type2",{"Mail - Copy.2"}),
+		    #"Renamed Columns7" = Table.RenameColumns(#"Removed Columns7",{{"Mail - Copy.1", "User ID"}}),
+		    #"Reordered Columns2" = Table.ReorderColumns(#"Renamed Columns7",{"DisplayName", "FirstName", "User ID", "Mail", "Manager", "PhoneNumber", "UPN", "Country Code", "Business Unit", "Country", "Company", "CountryCodeNumber", "Department", "City", "PostalCode", "StreetAddress", "Title", "LastName", "GroupMember", "WhenChangedDate", "WhenCreatedDate", "ExtensionAttribute2", "ExtensionAttribute3", "distinguishedName", "Domain", "Internal User"}),
+		    #"Renamed Columns8" = Table.RenameColumns(#"Reordered Columns2",{{"DisplayName", "Display Name"}, {"FirstName", "First Name"}, {"PhoneNumber", "Phone Number"}, {"CountryCodeNumber", "Country Code Number"}, {"PostalCode", "Postal Code"}, {"StreetAddress", "Street Address"}, {"LastName", "Last Name"}, {"GroupMember", "Group Member"}}),
+		    #"Reordered Columns3" = Table.ReorderColumns(#"Renamed Columns8",{"Display Name", "First Name", "Last Name", "User ID", "Mail", "Manager", "Phone Number", "UPN", "Country Code", "Business Unit", "Country", "Company", "Country Code Number", "Department", "City", "Postal Code", "Street Address", "Title", "Group Member", "WhenChangedDate", "WhenCreatedDate", "ExtensionAttribute2", "ExtensionAttribute3", "distinguishedName", "Domain", "Internal User"}),
+		    #"Filtered Rows2" = Table.SelectRows(#"Reordered Columns3", each [Display Name] <> null and [Display Name] <> ""),
+		    #"Replaced Value21" = Table.ReplaceValue(#"Filtered Rows2",".com",".net",Replacer.ReplaceText,{"UPN"}),
+		    #"Appended Query" = Table.Combine({#"Replaced Value21", fact_UsersFromQAD}),
+		    #"Removed Columns8" = Table.RemoveColumns(#"Appended Query",{"User active reason"}),
+		    #"Uppercased Text" = Table.TransformColumns(#"Removed Columns8",{{"UPN", Text.Upper, type text}}),
+		    #"Filtered Rows3" = Table.SelectRows(#"Uppercased Text", each ([Internal User] = "Yes")),
+		    #"Lowercased Text1" = Table.TransformColumns(#"Filtered Rows3",{{"User ID", Text.Lower, type text}}),
+		    #"Removed Columns9" = Table.RemoveColumns(#"Lowercased Text1",{"Group Member"}),
+		    #"Reordered Columns4" = Table.ReorderColumns(#"Removed Columns9",{"User ID", "Display Name", "First Name", "Last Name", "Mail", "Manager", "Phone Number", "UPN", "Country Code", "Business Unit", "Country", "Company", "Country Code Number", "Department", "City", "Postal Code", "Street Address", "Title", "WhenChangedDate", "WhenCreatedDate", "ExtensionAttribute2", "ExtensionAttribute3", "distinguishedName", "Domain", "Internal User", "User active"}),
+		    #"Appended Query1" = Table.Combine({#"Reordered Columns4", fact_UsersFromQAD}),
+		    #"Sorted Rows" = Table.Sort(#"Appended Query1",{{"User ID", Order.Ascending}}),
+		    #"Removed Columns10" = Table.RemoveColumns(#"Sorted Rows",{"User active reason", "Group Member"}),
+		    #"Removed Duplicates1" = Table.Distinct(#"Removed Columns10", {"UPN"})
+		in
+		    #"Removed Duplicates1"
+		```
+	lineageTag: e916e99b-2ccd-46b7-bd32-ea0e990a8e4b
+	queryGroup: old
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression Parameter1 = #"Sample File" meta [IsParameterQuery=true, BinaryIdentifier=#"Sample File", Type="Binary", IsParameterQueryRequired=true]
+	lineageTag: 2a1692d6-48df-48bd-b368-e76be3a29051
+	queryGroup: 'Transform File from Query1\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression 'Transform Sample File' =
+		let
+		    Source = Excel.Workbook(Parameter1, null, true),
+		    Table1_Table = Source{[Item="Table1",Kind="Table"]}[Data]
+		in
+		    Table1_Table
+	lineageTag: 0156bb9c-45f6-41d4-a22c-36ee03a036f3
+	queryGroup: 'Transform File from Query1'
+
+	annotation PBI_ResultType = Table
+
+expression 'Sample File' =
+		let
+		    Source = SharePoint.Files("https://kompangroup.sharepoint.com/OPE/ITOPS/", [ApiVersion = 15]),
+		    #"Filtered Rows" = Table.SelectRows(Source, each ([Extension] = ".xlsx") and ([Name] = "Product names and service plan identifiers for licensing.xlsx")),
+		    #"Expanded Attributes" = Table.ExpandRecordColumn(#"Filtered Rows", "Attributes", {"Size", "Content Type", "Kind"}, {"Attributes.Size", "Attributes.Content Type", "Attributes.Kind"}),
+		    Navigation1 = #"Expanded Attributes"{0}[Content]
+		in
+		    Navigation1
+	lineageTag: 4ec3a2f0-0061-4e11-b818-fbd2b707e868
+	queryGroup: 'Transform File from Query1\Helper Queries'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Binary
+
+expression 'Transform File' =
+		let
+		    Source = (Parameter1) => let
+		        Source = Excel.Workbook(Parameter1, null, true),
+		        Table1_Table = Source{[Item="Table1",Kind="Table"]}[Data]
+		    in
+		        Table1_Table
+		in
+		    Source
+	lineageTag: 84b64ae2-b01e-4fed-abfc-a124487aacfa
+	queryGroup: 'Transform File from Query1\Helper Queries'
+
+	annotation PBI_ResultType = Function
+
+expression Parameter2 = #"Sample File (2)" meta [IsParameterQuery=true, BinaryIdentifier=#"Sample File (2)", Type="Binary", IsParameterQueryRequired=true]
+	lineageTag: 27530229-82be-41ac-989c-355afad7724b
+	queryGroup: 'Transform File from reports\Helper Queries'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Binary
+
+expression 'Sample File (2)' =
+		let
+		    Source = AzureStorage.Blobs("wwstgeneral"),
+		    reports1 = Source{[Name="reports"]}[Data],
+		    #"Filtered Rows" = Table.SelectRows(reports1, each ([Name] = "AllUsersWithLicenses.json")),
+		    Navigation1 = #"Filtered Rows"{0}[Content]
+		in
+		    Navigation1
+	lineageTag: 4946e682-9b64-432d-bc81-e6a2b2b6cdd4
+	queryGroup: 'Transform File from reports\Helper Queries'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Binary
+
+expression 'Transform Sample File (2)' =
+		let
+		    Source = Json.Document(Parameter2),
+		    #"Converted to Table" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+		    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"DisplayName", "UserPrincipalName", "Licenses"}, {"DisplayName", "UserPrincipalName", "Licenses"}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Column1",{{"DisplayName", type text}, {"UserPrincipalName", type text}, {"Licenses", type any}})
+		in
+		    #"Changed Type"
+	lineageTag: 14887072-95db-46f8-9f22-5e8431a07c2a
+	queryGroup: 'Transform File from reports'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Transform File (2)' =
+		let
+		    Source = (Parameter2) => let
+		        Source = Json.Document(Parameter2),
+		        #"Converted to Table" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+		        #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"DisplayName", "UserPrincipalName", "Licenses"}, {"DisplayName", "UserPrincipalName", "Licenses"}),
+		        #"Changed Type" = Table.TransformColumnTypes(#"Expanded Column1",{{"DisplayName", type text}, {"UserPrincipalName", type text}, {"Licenses", type any}})
+		    in
+		        #"Changed Type"
+		in
+		    Source
+	lineageTag: 2f4a1f79-ae1d-48a9-8854-36e8abc1219e
+	queryGroup: 'Transform File from reports\Helper Queries'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
+expression Parameter3 = #"Sample File (3)" meta [IsParameterQuery=true, BinaryIdentifier=#"Sample File (3)", Type="Binary", IsParameterQueryRequired=true]
+	lineageTag: 3ce2f445-fbdb-4e51-8e30-10ce122723cc
+	queryGroup: 'Transform File from reports (2)\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression 'Sample File (3)' =
+		let
+		    Source = AzureStorage.Blobs("wwstgeneral"),
+		    reports1 = Source{[Name="reports"]}[Data],
+		    #"Filtered Rows" = Table.SelectRows(reports1, each ([Name] = "AllUsersWithLicenses.json")),
+		    Navigation1 = #"Filtered Rows"{0}[Content]
+		in
+		    Navigation1
+	lineageTag: d42390d2-2370-48df-b326-73b16efe601d
+	queryGroup: 'Transform File from reports (2)\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression 'Transform Sample File (3)' =
+		let
+		    Source = Json.Document(Parameter3),
+		    #"Converted to Table" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+		    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"DisplayName", "MailRaw", "UserPrincipalName", "OnPremisesUPN", "SamAccountName", "Licenses"}, {"DisplayName", "MailRaw", "UserPrincipalName", "OnPremisesUPN", "SamAccountName", "Licenses"}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Column1",{{"DisplayName", type text}, {"MailRaw", type text}, {"UserPrincipalName", type text}, {"OnPremisesUPN", type any}, {"SamAccountName", type any}, {"Licenses", type any}})
+		in
+		    #"Changed Type"
+	lineageTag: db7d31ac-3e6e-4b58-9b99-e3f57865a68f
+	queryGroup: 'Transform File from reports (2)'
+
+	annotation PBI_ResultType = List
+
+expression 'Transform File (3)' =
+		let
+		    Source = (Parameter3 as binary) => let
+		    Source = Json.Document(Parameter3),
+		    #"Converted to Table" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+		    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"DisplayName", "MailRaw", "UserPrincipalName", "OnPremisesUPN", "SamAccountName", "Licenses"}, {"DisplayName", "MailRaw", "UserPrincipalName", "OnPremisesUPN", "SamAccountName", "Licenses"}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Column1",{{"DisplayName", type text}, {"MailRaw", type text}, {"UserPrincipalName", type text}, {"OnPremisesUPN", type any}, {"SamAccountName", type any}, {"Licenses", type any}})
+		in
+		    #"Changed Type"
+		in
+		    Source
+	mAttributes: [ FunctionQueryBinding = "{""exemplarFormulaName"":""Transform Sample File (3)""}" ]
+	lineageTag: 01048949-80aa-48c8-9907-60035b0416d9
+	queryGroup: 'Transform File from reports (2)\Helper Queries'
+
+	annotation PBI_ResultType = Function
+
+expression Users_fromGraph = ```
+		let
+		    // === Přihlašovací údaje ===
+		    tenantId = "949c3b0c-e889-42e3-b5eb-d874e859d6e0",
+		    clientId = "0a46a613-04e6-4cda-9abf-85d1ddc4460a",
+		    tokenUrl = "https://login.microsoftonline.com/" & tenantId & "/oauth2/v2.0/token",
+		    tokenBodyText = "grant_type=client_credentials" &
+		                    "&client_id=" & clientId &
+		                    "&client_secret=" & Uri.EscapeDataString(clientSecret) &
+		                    "&scope=" & Uri.EscapeDataString("https://graph.microsoft.com/.default"),
+		    tokenResponse = Json.Document(Web.Contents(tokenUrl, [
+		        Content = Text.ToBinary(tokenBodyText),
+		        Headers = [#"Content-Type"="application/x-www-form-urlencoded", Accept="application/json"]
+		    ])),
+		    access_token = tokenResponse[access_token],
+		
+		    // === Pomocná funkce pro stránkování ===
+		    GetAllPages = (initialUrl as text) as list =>
+		        let
+		            getPage = (url, acc) =>
+		                let
+		                    response = Json.Document(Web.Contents(url, [
+		                        Headers = [Authorization = "Bearer " & access_token, Accept = "application/json"]
+		                    ])),
+		                    data = response[value],
+		                    next = try response[#"@odata.nextLink"] otherwise null,
+		                    newAcc = acc & data
+		                in
+		                    if next = null then newAcc else @getPage(next, newAcc)
+		        in
+		            getPage(initialUrl, {}),
+		
+		    // === Získání všech uživatelů ===
+		    allUsers = GetAllPages("https://graph.microsoft.com/v1.0/users?$select=displayName,id,onPremisesUserPrincipalName,onPremisesSamAccountName&$top=10"),
+		    usersTable = Table.FromRecords(allUsers),
+		
+		    // === Získání licencí (subscribedSkus) ===
+		    skusUrl = "https://graph.microsoft.com/v1.0/subscribedSkus",
+		    skusResult = Json.Document(Web.Contents(skusUrl, [
+		        Headers = [ Authorization="Bearer " & access_token, Accept="application/json" ]
+		    ])),
+		    skuList = skusResult[value],
+		    skuMapTable = Table.FromRecords(List.Transform(skuList, each [
+		        skuId = _[skuId],
+		        skuPartNumber = _[skuPartNumber]
+		    ])),
+		
+		    // === Funkce pro překlad skuId na skuPartNumber ===
+		    GetSkuName = (id as text) as text =>
+		        let found = Table.SelectRows(skuMapTable, each [skuId] = id)
+		        in if Table.IsEmpty(found) then id else found{0}[skuPartNumber],
+		
+		    // === Funkce na získání licencí uživatele jako seznam záznamů ===
+		    
+		    GetUserLicensesTable = (userId as text) as table =>
+		        let
+		            baseUrl = "https://graph.microsoft.com/v1.0/",
+		            relativePath = "users/" & userId & "/licenseDetails",
+		            response = try Json.Document(Web.Contents(baseUrl, [
+		                RelativePath = relativePath,
+		                Headers = [
+		                    Authorization = "Bearer " & access_token,
+		                    Accept = "application/json"
+		                ]
+		            ])) otherwise [value = {}],
+		            lis = response[value],
+		            licenseRecords = List.Transform(lis, each [
+		                skuId = _[skuId],
+		                skuName = GetSkuName(_[skuId])
+		            ]),
+		            licenseTable = Table.FromRecords(licenseRecords)
+		        in
+		            licenseTable,
+		
+		    // === Pro každýho uživatele načteme licence a vytvoříme rozbalenou tabulku uživatelů s licencemi ===
+		    UsersWithLicensesExpanded = Table.ExpandTableColumn(
+		        Table.AddColumn(usersTable, "UserLicenses", each GetUserLicensesTable([id])),
+		        "UserLicenses", {"skuName"}
+		    ),
+		    #"Added Custom" = Table.AddColumn(UsersWithLicensesExpanded, "UPN", each [onPremisesSamAccountName] & "@kompan.net"),
+		    #"Uppercased Text" = Table.TransformColumns(#"Added Custom",{{"UPN", Text.Upper, type text}}),
+		    #"Renamed Columns" = Table.RenameColumns(#"Uppercased Text",{{"displayName", "Display Name"}}),
+		    #"Added Custom1" = Table.AddColumn(#"Renamed Columns", "Source", each "Graph API"),
+		    #"Renamed Columns1" = Table.RenameColumns(#"Added Custom1",{{"Source", "DataSource"}, {"skuName", "Group Member"}}),
+		    #"Replaced Value" = Table.ReplaceValue(#"Renamed Columns1","SPE_E5","Microsoft 365 E5",Replacer.ReplaceText,{"Group Member"}),
+		    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","OFFICESUBSCRIPTION","Microsoft 365 Apps for Enterprise",Replacer.ReplaceText,{"Group Member"}),
+		    #"Removed Columns" = Table.RemoveColumns(#"Replaced Value1",{"id", "onPremisesUserPrincipalName"})
+		in
+		    #"Removed Columns"
+		```
+	lineageTag: b27c8a07-84b0-4c44-96b2-49515a6ec8bb
+	queryGroup: old
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression dimUserOld2 =
+		let
+		    Source = ActiveDirectory.Domains("kompan.net"),
+		    #"kompan net" = Source{[Domain="kompan.net"]}[Object Categories],
+		    user = #"kompan net"{[Category="user"]}[Objects],
+		    #"Expanded organizationalPerson" = Table.ExpandRecordColumn(user, "organizationalPerson", {"company", "department"}, {"company", "department"}),
+		    #"Sorted Rows" = Table.Sort(#"Expanded organizationalPerson",{{"displayName", Order.Ascending}}),
+		    #"Removed Errors" = Table.RemoveRowsWithErrors(#"Sorted Rows", {"company"}),
+		    #"Renamed Columns" = Table.RenameColumns(#"Removed Errors",{{"displayName", "Display Name"}, {"company", "Company"}, {"department", "Department"}}),
+		    #"Replaced Value" = Table.ReplaceValue(#"Renamed Columns","KOMPAN SA","KOMPAN SAS",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","Kompan Danmark A/S","KOMPAN Danmark A/S",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value2" = Table.ReplaceValue(#"Replaced Value1","KOMPAN SASS (France)","KOMPAN SAS",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value3" = Table.ReplaceValue(#"Replaced Value2","KOMPAN SASS","KOMPAN SAS",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value4" = Table.ReplaceValue(#"Replaced Value3","COROCORD Raumnetz GmbH","KOMPAN GmbH (DE)",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value5" = Table.ReplaceValue(#"Replaced Value4","Slottsbro AB","KOMPAN Sverige AB",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value6" = Table.ReplaceValue(#"Replaced Value5","KOMPAN Ireland Ltd","KOMPAN Ireland Ltd.",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value7" = Table.ReplaceValue(#"Replaced Value6","OOO KOMPAN Russia","ООО KOMPAN Russia",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value8" = Table.ReplaceValue(#"Replaced Value7","KOMPAN Ireland Ltd..","KOMPAN Ireland Ltd.",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value9" = Table.ReplaceValue(#"Replaced Value8","KOMPAN NV/SA","KOMPAN N.V. (Belgium)",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value10" = Table.ReplaceValue(#"Replaced Value9","KOMPAN Playscape Pty. Ltd","KOMPAN Australia Pty Ltd",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value11" = Table.ReplaceValue(#"Replaced Value10","Kompan Designstudio and Manufacturing Berlin GmbH","KOMPAN GmbH (DE)",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value12" = Table.ReplaceValue(#"Replaced Value11","Kompan Sverige AB","KOMPAN Sverige AB",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value13" = Table.ReplaceValue(#"Replaced Value12","KOMPAN Manufacturing Poland sp. Z.o.o.","KOMPAN Manufacturing Poland sp. z o.o.",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value14" = Table.ReplaceValue(#"Replaced Value13","Kompan Inc.","KOMPAN Inc.",Replacer.ReplaceText,{"Company"}),
+		    #"Replaced Value15" = Table.ReplaceValue(#"Replaced Value14","KOMPAN Czech Republic s.r.o.","Kompan Czech Republic s.r.o.",Replacer.ReplaceText,{"Company"}),
+		    #"Conditional: Company to BU" = Table.AddColumn(#"Replaced Value15", "Business Unit", each if [Company] = "KOMPAN Danmark A/S" then "DK1" else if [Company] = "KOMPAN Steel Manufacturing s.r.o." then "CZ2" else if [Company] = "KOMPAN Commercial Systems S.A." then "BE1" else if [Company] = "KOMPAN Scotland Ltd." then "UK1" else if [Company] = "KOMPAN Ltd." then "UK" else if [Company] = "Kompan Ltd." then "UK" else if [Company] = "KOMPAN A/S" then "DK" else if [Company] = "KOMPAN Manufacturing Poland sp. z o.o." then "PL" else if [Company] = "KOMPAN Commercial Systems" then "BE1" else if [Company] = "Kompan Czech Republic s.r.o." then "CZ" else if [Company] = "Juegos KOMPAN S.A." then "ES" else if [Company] = "KOMPAN Australia Pty Ltd" then "AU" else if [Company] = "KOMPAN Sverige AB" then "SE" else if [Company] = "KOMPAN Playgrounds (Shanghai) Co. Ltd" then "CN" else if [Company] = "KOMPAN Italia Srl." then "IT" else if [Company] = "KOMPAN SAS (France)" then "FR" else if [Company] = "KOMPAN, Inc." then "US" else if [Company] = "KOMPAN BV" then "NL" else if [Company] = "KOMPAN GmbH (DE)" then "DE" else if [Company] = "KOMPAN Inc." then "US" else if [Company] = "Kompan GmbH" then "DE" else if [Company] = "KOMPAN Ireland Ltd." then "IE" else if [Company] = "Juegos Kompan S.A." then "ES" else if [Company] = "KOMPAN SAS" then "FR" else if [Company] = "KOMPAN Suomi Oy" then "FI" else if [Company] = "ООО KOMPAN Russia" then "RU" else if [Company] = "Kompan Italia S.r.l." then "IT" else if [Company] = "KOMPAN B.V." then "NL" else if [Company] = "KOMPAN Norge AS" then "NO" else if [Company] = "KOMPAN N.V. (Belgium)" then "BE" else if [Company] = "KOMPAN Asia Pte. Ltd." then "SG" else if [Company] = "Repcon BV" then "NL" else if [Company] = "KOMPAN Austria GmbH" then "AT" else if [Company] = "KOMPAN MEA Commercial Brokers LLC" then "AE" else if [Company] = "KOMPAN GmbH (CH)" then "CH" else if [Company] = "KOMPAN CSA" then "DK" else "_E"),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Conditional: Company to BU",{"Display Name", "user", "Company", "Business Unit", "Department", "person", "top", "posixAccount", "shadowAccount", "msExchOmaUser", "msExchBaseClass", "msExchCertificateInformation", "msExchIMRecipient", "msExchMultiMediaUser", "msExchMailStorage", "msExchCustomAttributes", "msDS-CloudExtensions", "securityPrincipal", "mailRecipient", "distinguishedName"}),
+		    #"Expanded user" = Table.ExpandRecordColumn(#"Reordered Columns", "user", {"mail", "userPrincipalName"}, {"user.mail", "user.userPrincipalName"}),
+		    #"Renamed Columns1" = Table.RenameColumns(#"Expanded user",{{"user.userPrincipalName", "UPN"}, {"user.mail", "Mail"}}),
+		    #"Added Custom" = Table.AddColumn(#"Renamed Columns1", "Initials", each Text.Lower(Text.BeforeDelimiter([Mail], "@"))),
+		    #"Reordered Columns1" = Table.ReorderColumns(#"Added Custom",{"Display Name", "Initials", "UPN", "Company", "Business Unit", "Department", "person", "top", "posixAccount", "shadowAccount", "msExchOmaUser", "msExchBaseClass", "msExchCertificateInformation", "msExchIMRecipient", "msExchMultiMediaUser", "msExchMailStorage", "msExchCustomAttributes", "msDS-CloudExtensions", "securityPrincipal", "mailRecipient", "distinguishedName"}),
+		    #"Filtered Rows1" = Table.SelectRows(#"Reordered Columns1", each [UPN] <> null and [UPN] <> ""),
+		    #"Uppercased Text" = Table.TransformColumns(#"Filtered Rows1",{{"UPN", Text.Upper, type text}}),
+		    #"Trimmed Text" = Table.TransformColumns(#"Uppercased Text",{{"UPN", Text.Trim, type text}}),
+		    #"Cleaned Text" = Table.TransformColumns(#"Trimmed Text",{{"UPN", Text.Clean, type text}}),
+		    #"Removed Other Columns" = Table.SelectColumns(#"Cleaned Text",{"Display Name", "Mail", "Initials", "UPN", "Company", "Business Unit", "Department", "distinguishedName"}),
+		    #"Reordered Columns3" = Table.ReorderColumns(#"Removed Other Columns",{"Display Name", "Initials", "UPN", "Business Unit", "Company", "Department", "distinguishedName"}),
+		    #"Appended Query" = Table.Combine({#"Reordered Columns3", fact_UsersFromQADToAppend}),
+		    #"Reordered Columns2" = Table.ReorderColumns(#"Appended Query",{"Initials", "Display Name", "UPN", "Business Unit", "Company", "Department", "distinguishedName"}),
+		    #"Replaced Value16" = Table.ReplaceValue(#"Reordered Columns2",".COM",".NET",Replacer.ReplaceText,{"UPN"}),
+		    #"Removed Duplicates" = Table.Distinct(#"Replaced Value16", {"UPN"})
+		in
+		    #"Removed Duplicates"
+	lineageTag: 7425c63b-3c9e-45e6-a2d6-6931767df8db
+	queryGroup: old
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

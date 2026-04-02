@@ -1,0 +1,96 @@
+/// Detailed license assignment table showing which users have which products or access groups.
+table fact_UsersLicensesAll
+	lineageTag: 7a3658ae-059d-45c9-bd76-85fcf6e7b4cf
+
+	/// User email address linked to the license assignment.
+	column Mail
+		dataType: string
+		lineageTag: 71c7cbf5-5a28-4c31-8711-f6b493e36467
+		summarizeBy: none
+		sourceColumn: Mail
+
+		annotation SummarizationSetBy = Automatic
+
+	/// User sign-in name linked to the license assignment.
+	column UPN
+		dataType: string
+		lineageTag: 2cfe0577-5e2e-403e-b8ee-ba0389e3ffd1
+		summarizeBy: none
+		sourceColumn: UPN
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Source group or entitlement that drives the license mapping.
+	column 'Group Member'
+		dataType: string
+		lineageTag: 6e9da755-674b-49eb-9c83-d61a09ae222b
+		summarizeBy: none
+		sourceColumn: Group Member
+
+		annotation SummarizationSetBy = Automatic
+
+	/// User identifier used to join and analyse license assignments.
+	column 'User ID'
+		dataType: string
+		lineageTag: 799540ad-e491-4572-acdd-bad94831d646
+		summarizeBy: none
+		sourceColumn: User ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Business-friendly license category used in reporting.
+	column License
+		dataType: string
+		lineageTag: 703629ec-9b98-44d8-8c62-ff2f63c3449c
+		summarizeBy: none
+		sourceColumn: License
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Department of the user holding the license.
+	column Department
+		dataType: string
+		lineageTag: 7cd6d999-6bfb-4052-9458-b3530827a86b
+		summarizeBy: none
+		sourceColumn: Department
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Source system from which the license-related user record was collected.
+	column DataSource
+		dataType: string
+		lineageTag: 534dd8d2-e25e-4045-b674-c358ff0f8bb6
+		summarizeBy: none
+		sourceColumn: DataSource
+
+		annotation SummarizationSetBy = Automatic
+
+	/// User name shown in license reporting.
+	column 'Display Name'
+		dataType: string
+		lineageTag: 2fd6bfa3-b180-4e23-83be-6a65edc3ae78
+		summarizeBy: none
+		sourceColumn: Display Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition UsersLicenses_All = m
+		mode: import
+		source =
+				let
+				    Source = Table.Combine({fact_UsersFromAD, fact_UsersFromQAD, fact_UsersFromGraphJSON}),
+				    #"Sorted Rows" = Table.Sort(Source,{{"Display Name", Order.Ascending}}),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Sorted Rows",{"Display Name", "Mail", "UPN", "Group Member", "WhenChangedDate", "WhenCreatedDate", "distinguishedName", "User ID", "User active", "User active reason"}),
+				    #"Lowercased Text" = Table.TransformColumns(#"Reordered Columns",{{"User ID", Text.Lower, type text}}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Lowercased Text",".COM",".NET",Replacer.ReplaceText,{"UPN"}),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Replaced Value",{"Display Name", "Mail", "UPN", "Group Member", "Department", "DataSource", "User ID"}),
+				    #"Merged Queries" = Table.NestedJoin(#"Removed Other Columns", {"Group Member"}, mapping_Licenses, {"Group Member"}, "mapping_Licenses", JoinKind.LeftOuter),
+				    #"Expanded mapping_Licenses" = Table.ExpandTableColumn(#"Merged Queries", "mapping_Licenses", {"License"}, {"License"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Expanded mapping_Licenses",null,"Other",Replacer.ReplaceValue,{"License"})
+				in
+				    #"Replaced Value1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,115 @@
+/// Staging fact table containing Microsoft Graph users appended into the consolidated user dimension.
+table fact_UsersFromGraphJSONToAppend
+	lineageTag: 07c9b7a7-c65c-4e7a-a270-c94512488171
+
+	column Initials
+		dataType: string
+		lineageTag: ceed53f6-003b-4280-b080-35a32b14db8e
+		summarizeBy: none
+		sourceColumn: Initials
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Display Name'
+		dataType: string
+		lineageTag: 15520a27-78d4-42db-8fc4-f4a4dd7ff49a
+		summarizeBy: none
+		sourceColumn: Display Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column UPN
+		dataType: string
+		lineageTag: 68d7d5fd-c8bd-44a2-ae4c-0f3ebc15b1fc
+		summarizeBy: none
+		sourceColumn: UPN
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Unit'
+		dataType: string
+		lineageTag: 46f64b37-cc7d-408a-8a44-03145a3eeace
+		summarizeBy: none
+		sourceColumn: Business Unit
+
+		annotation SummarizationSetBy = Automatic
+
+	column Department
+		dataType: string
+		lineageTag: d4b10bc4-39a5-41cd-a11e-29fe3c7c3eb2
+		summarizeBy: none
+		sourceColumn: Department
+
+		annotation SummarizationSetBy = Automatic
+
+	column Company
+		dataType: string
+		lineageTag: 8e9d0ef6-0c9f-4775-9b20-f5c3ef8599df
+		summarizeBy: none
+		sourceColumn: Company
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataSource
+		dataType: string
+		lineageTag: 7802a965-be9a-4d70-940c-bb00044e2c18
+		summarizeBy: none
+		sourceColumn: DataSource
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Users_fromGraphJSON_ToAppend = m
+		mode: import
+		source =
+				let
+				    Source = AzureStorage.Blobs("wwstgeneral"),
+				    reports1 = Source{[Name="reports"]}[Data],
+				    #"Filtered Rows" = Table.SelectRows(reports1, each ([Name] = "AllUsersWithLicenses.json")),
+				    #"Filtered Hidden Files1" = Table.SelectRows(#"Filtered Rows", each [Attributes]?[Hidden]? <> true),
+				    #"Invoke Custom Function1" = Table.AddColumn(#"Filtered Hidden Files1", "Transform File (3)", each #"Transform File (3)"([Content])),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Invoke Custom Function1", {"Name", "Source.Name"}),
+				    #"Removed Other Columns1" = Table.SelectColumns(#"Renamed Columns1", {"Source.Name", "Transform File (3)"}),
+				    #"Expanded Table Column1" = Table.ExpandTableColumn(#"Removed Other Columns1", "Transform File (3)", Table.ColumnNames(#"Transform File (3)"(#"Sample File (3)"))),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Table Column1",{{"Source.Name", type text}, {"DisplayName", type text}, {"MailRaw", type text}, {"UserPrincipalName", type text}, {"OnPremisesUPN", type any}, {"SamAccountName", type any}, {"Licenses", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"OnPremisesUPN", "SamAccountName"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"Source.Name", "DataSource"}}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Renamed Columns","AllUsersWithLicenses.json","Graph API",Replacer.ReplaceText,{"DataSource"}),
+				    #"Split Column by Delimiter" = Table.ExpandListColumn(Table.TransformColumns(#"Replaced Value", {{"Licenses", Splitter.SplitTextByDelimiter(",", QuoteStyle.Csv), let itemType = (type nullable text) meta [Serialized.Text = true] in type {itemType}}}), "Licenses"),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Split Column by Delimiter",{{"Licenses", type text}}),
+				    #"Trimmed Text" = Table.TransformColumns(#"Changed Type1",{{"Licenses", Text.Trim, type text}}),
+				    #"Renamed Columns2" = Table.RenameColumns(#"Trimmed Text",{{"DisplayName", "Display Name"}}),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Renamed Columns2",{"Display Name", "MailRaw", "UserPrincipalName", "Licenses", "DataSource"}),
+				    #"Renamed Columns3" = Table.RenameColumns(#"Reordered Columns",{{"MailRaw", "Mail"}, {"UserPrincipalName", "UPN"}}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Renamed Columns3",".com",".net",Replacer.ReplaceText,{"UPN"}),
+				    #"Uppercased Text" = Table.TransformColumns(#"Replaced Value1",{{"UPN", Text.Upper, type text}}),
+				    #"Renamed Columns4" = Table.RenameColumns(#"Uppercased Text",{{"Licenses", "Group Member"}}),
+				    #"Replaced Value2" = Table.ReplaceValue(#"Renamed Columns4","SPE_E5","Microsoft 365 E5",Replacer.ReplaceText,{"Group Member"}),
+				    #"Replaced Value3" = Table.ReplaceValue(#"Replaced Value2","OFFICESUBSCRIPTION","Microsoft 365 Apps for Enterprise",Replacer.ReplaceText,{"Group Member"}),
+				    #"Merged Queries" = Table.NestedJoin(#"Replaced Value3", {"Display Name"}, dimUserOld2, {"Display Name"}, "dimUser", JoinKind.LeftOuter),
+				    #"Expanded dimUser" = Table.ExpandTableColumn(#"Merged Queries", "dimUser", {"Business Unit", "Company", "Department", "Initials", "Mail", "UPN"}, {"dimUser.Business Unit", "dimUser.Company", "dimUser.Department", "dimUser.Initials", "dimUser.Mail", "dimUser.UPN"}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Expanded dimUser", "UPN Final", each if [dimUser.UPN] <> null then [dimUser.UPN] else [UPN]),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Added Conditional Column",{"UPN", "dimUser.Initials", "dimUser.Mail", "dimUser.UPN"}),
+				    #"Renamed Columns5" = Table.RenameColumns(#"Removed Columns1",{{"UPN Final", "UPN"}}),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Renamed Columns5", "UPN", "UPN - Copy"),
+				    #"Lowercased Text" = Table.TransformColumns(#"Duplicated Column",{{"UPN - Copy", Text.Lower, type text}}),
+				    #"Split Column by Delimiter1" = Table.SplitColumn(#"Lowercased Text", "UPN - Copy", Splitter.SplitTextByEachDelimiter({"@"}, QuoteStyle.Csv, false), {"UPN - Copy.1", "UPN - Copy.2"}),
+				    #"Changed Type2" = Table.TransformColumnTypes(#"Split Column by Delimiter1",{{"UPN - Copy.1", type text}, {"UPN - Copy.2", type text}}),
+				    #"Removed Columns2" = Table.RemoveColumns(#"Changed Type2",{"UPN - Copy.2"}),
+				    #"Renamed Columns6" = Table.RenameColumns(#"Removed Columns2",{{"UPN - Copy.1", "Initials"}}),
+				    #"Reordered Columns1" = Table.ReorderColumns(#"Renamed Columns6",{"Initials", "Display Name", "Mail", "Group Member", "DataSource", "UPN"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Reordered Columns1", {"UPN"}),
+				    #"Reordered Columns2" = Table.ReorderColumns(#"Removed Duplicates",{"Initials", "Display Name", "UPN", "Mail", "Group Member", "DataSource"}),
+				    #"Renamed Columns7" = Table.RenameColumns(#"Reordered Columns2",{{"dimUser.Business Unit", "Business Unit"}}),
+				    #"Reordered Columns3" = Table.ReorderColumns(#"Renamed Columns7",{"Initials", "Display Name", "UPN", "Business Unit", "dimUser.Department", "Mail", "dimUser.Company", "Group Member", "DataSource"}),
+				    #"Renamed Columns8" = Table.RenameColumns(#"Reordered Columns3",{{"dimUser.Department", "Department"}}),
+				    #"Removed Columns3" = Table.RemoveColumns(#"Renamed Columns8",{"Mail"}),
+				    #"Renamed Columns9" = Table.RenameColumns(#"Removed Columns3",{{"dimUser.Company", "Company"}}),
+				    #"Removed Columns4" = Table.RemoveColumns(#"Renamed Columns9",{"Group Member"}),
+				    #"Replaced Value4" = Table.ReplaceValue(#"Removed Columns4",null,"_E",Replacer.ReplaceValue,{"Business Unit"})
+				in
+				    #"Replaced Value4"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

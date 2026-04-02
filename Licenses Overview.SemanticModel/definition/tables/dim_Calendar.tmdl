@@ -1,0 +1,26 @@
+/// Main reporting calendar used to filter and analyse results over time.
+table dim_Calendar
+	lineageTag: eacc43e6-f73f-4181-8246-a30f886d4446
+
+	/// Calendar date used across the report for filtering, trends, and time-based calculations.
+	column Date
+		formatString: Long Date
+		lineageTag: 8f8384a8-3579-4f46-8e9b-9441fc845c00
+		summarizeBy: none
+		sourceColumn: [Date]
+
+		variation Variation
+			isDefault
+			relationship: e2ddb486-8b4c-4814-b678-c8137a6174f5
+			defaultHierarchy: LocalDateTable_07055012-6a8b-4480-9e3e-2273943839a3.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition Calendar = calculated
+		mode: import
+		source = calendar(DATE(2000,01,01), DATE(2025,31,12))
+
+	annotation PBI_Id = bb6fa25a09924909900c71ca5a23886c
+

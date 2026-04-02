@@ -1,0 +1,405 @@
+/// Detailed Active Directory user data used to report workforce size, activity, and attributes.
+table fact_UsersFromAD
+	lineageTag: a970e254-2f9f-4fff-bbb0-9162c90f650c
+
+	/// User name shown in reporting and filters.
+	column 'Display Name'
+		dataType: string
+		lineageTag: 3fb34b17-bb94-4836-b31f-b09a0a2131e5
+		summarizeBy: none
+		sourceColumn: Display Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'First Name'
+		dataType: string
+		lineageTag: 52a01dbb-7ee0-4108-aecc-a58b4dfed792
+		summarizeBy: none
+		sourceColumn: First Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Primary email address of the user.
+	column Mail
+		dataType: string
+		lineageTag: 6465ce88-812d-46bc-a726-93afba206a54
+		summarizeBy: none
+		sourceColumn: Mail
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Manager name associated with the user record.
+	column Manager
+		dataType: string
+		lineageTag: 97662cca-5018-467d-9314-b576abb1973a
+		summarizeBy: none
+		sourceColumn: Manager
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Phone Number'
+		dataType: string
+		lineageTag: 4e584463-8cb5-4ef4-806f-81102da41500
+		summarizeBy: none
+		sourceColumn: Phone Number
+
+		annotation SummarizationSetBy = Automatic
+
+	/// User sign-in name used across systems and security logic.
+	column UPN
+		dataType: string
+		lineageTag: 97544ed0-130b-4bf7-b304-96c08082303b
+		summarizeBy: none
+		sourceColumn: UPN
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Country assigned to the user.
+	column Country
+		dataType: string
+		lineageTag: 0727d8f5-4a91-46dc-91ef-573d2e731543
+		summarizeBy: none
+		sourceColumn: Country
+
+		annotation SummarizationSetBy = Automatic
+
+	column CountryCodeNumber
+		dataType: double
+		lineageTag: 552bcfa0-5666-4627-a199-dd3e0635097f
+		summarizeBy: sum
+		sourceColumn: CountryCodeNumber
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Department assigned to the user.
+	column Department
+		dataType: string
+		lineageTag: 436131a0-94ee-4d8b-ad17-b32a3de5d7b8
+		summarizeBy: none
+		sourceColumn: Department
+
+		annotation SummarizationSetBy = Automatic
+
+	column City
+		dataType: string
+		lineageTag: 3208a18e-731e-4b08-8dfe-692f8826674c
+		summarizeBy: none
+		sourceColumn: City
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Postal Code'
+		dataType: string
+		lineageTag: 8c9b5672-429e-44b3-8e61-57a784955d7a
+		summarizeBy: none
+		sourceColumn: Postal Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Street Address'
+		dataType: string
+		lineageTag: cae81f21-0606-4642-af89-1980ad6f21f7
+		summarizeBy: none
+		sourceColumn: Street Address
+
+		annotation SummarizationSetBy = Automatic
+
+	column Title
+		dataType: string
+		lineageTag: 915be273-d0e7-4fd6-b2bd-433b297cac9d
+		summarizeBy: none
+		sourceColumn: Title
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Last Name'
+		dataType: string
+		lineageTag: ef594f61-558c-4579-ae21-a3335a6efa21
+		summarizeBy: none
+		sourceColumn: Last Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// AD group membership used to derive licenses and access.
+	column 'Group Member'
+		dataType: string
+		lineageTag: 8b317e01-e6e1-4848-9d11-bc8b6f66df90
+		summarizeBy: none
+		sourceColumn: Group Member
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date when the user record was last changed in Active Directory.
+	column WhenChangedDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 3480317b-f6cd-443e-b734-aed33c9bc9c0
+		summarizeBy: none
+		sourceColumn: WhenChangedDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when the user record was created in Active Directory.
+	column WhenCreatedDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: e95de185-de3d-449a-8f80-c10e8e22057d
+		summarizeBy: none
+		sourceColumn: WhenCreatedDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ExtensionAttribute2
+		dataType: string
+		lineageTag: 073176a4-9eaa-43fa-98dc-6e6353d5dadb
+		summarizeBy: none
+		sourceColumn: ExtensionAttribute2
+
+		annotation SummarizationSetBy = Automatic
+
+	column ExtensionAttribute3
+		dataType: string
+		lineageTag: b70675c2-bb2b-4af2-aecd-e207b5552437
+		summarizeBy: none
+		sourceColumn: ExtensionAttribute3
+
+		annotation SummarizationSetBy = Automatic
+
+	column distinguishedName
+		dataType: string
+		lineageTag: b30ce69d-8429-49e5-9aa5-5b5c4c576571
+		summarizeBy: none
+		sourceColumn: distinguishedName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Country inferred from Navision-related group membership.
+	column NavisionCountry =
+			
+			SWITCH(
+			    TRUE(),
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-AT", "Austria",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-AU", "Australia",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-BE", "Belgium",
+			    LEFT(fact_UsersFromAD[Group Member], 11) = "NAV2016-BE1", "Belgium",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-CH", "Switzerland",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-CZ", "Czech Republic",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-DE", "Germany",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-DK", "Denmark",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-ES", "Spain",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-FI", "Finland",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-FR", "France",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-IE", "Ireland",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-IT", "Italy",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-NL", "Netherlands",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-NO", "Norway",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-SE", "Sweden",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-SG", "Singapore",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-UK", "United Kingdom",
+			    LEFT(fact_UsersFromAD[Group Member], 11) = "NAV2016-UK1", "United Kingdom",
+			    LEFT(fact_UsersFromAD[Group Member], 10) = "NAV2016-US", "United States",
+			    fact_UsersFromAD[Group Member] // Default category if no match is found
+			)
+		lineageTag: dd9e2b7c-7237-4e4c-ab86-c844bd53361d
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Business-friendly license category derived from group membership.
+	column Licences = ```
+			
+			IF
+			(CONTAINSSTRING([Group Member], "SOLIDWORKSUsers"),
+			    "Solid Works/Smarteam/PDM",
+			   IF(
+			        CONTAINSSTRING([Group Member], "NAV2016Users"),
+			        "Navision",
+			        IF(
+			            [Group Member] = "AUTODESKUsers", 
+			            "Autocad/3d Studio Max/etc.",
+			            IF(
+			                CONTAINSSTRING([Group Member], "QAD") || 
+			                CONTAINSSTRING([Group Member], "Progress"),
+			                "QAD/Progress",
+			                IF(
+			                    CONTAINSSTRING([Group Member], "D365Users - Online"),
+			                    "CRM",
+			                    IF(
+			                        CONTAINSSTRING([Group Member], "Adobe") && NOT(CONTAINSSTRING([Group Member], "Creative")),
+			                        "ADOBE Acr., Photo., Illu., InDesign (single app)",
+			                        IF(
+			                            CONTAINSSTRING([Group Member], "Adobe") && CONTAINSSTRING([Group Member], "Creative"),
+			                            "ADOBE Create Cloud (all apps)",
+			                            IF(
+			                                [Group Member] = "TEMPLAFYUsers",
+			                                "Omnidocs (Templafy)",
+			                                IF(
+			                                    [Group Member] = "VIS Performance",
+			                                    "VIS Performance",
+			                                    IF(
+			                                        [Group Member] = "MediusUsers-KompanAS",
+			                                        "Medius",
+			                                        IF(
+			                                            [Group Member] = "LMSUsers",
+			                                            "LMS",
+			                                            IF(
+			                                                [Group Member] = "Slim4-PROD",
+			                                                "Slimstock",
+			                                                IF(
+			                                                    [Group Member] = "BOXUsers",
+			                                                    "BOX.com",
+			                                                    IF(
+			                                                        [Group Member] = "FUSIOUsers",
+			                                                        "FUSIO",
+			                                                        [Group Member]
+			                                                    )
+			                                                )
+			                                            )    
+			                                        )    
+			                                    )    
+			                                )    
+			                            )    
+			                        )
+			                    )
+			                )
+			            )
+			        )
+			    )
+			)
+			```
+		lineageTag: a22ee11e-8526-4fcb-9534-e2cd1b9317eb
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Domain
+		dataType: string
+		lineageTag: 2e8cee2b-0833-4edf-ac61-a2e1a9eec2e8
+		summarizeBy: none
+		sourceColumn: Domain
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Internal User'
+		dataType: string
+		lineageTag: 2e34719e-3c98-4b2d-b74a-05c51501474e
+		summarizeBy: none
+		sourceColumn: Internal User
+
+		annotation SummarizationSetBy = Automatic
+
+	column CountryCode
+		dataType: string
+		lineageTag: ce21f955-8a9e-43c2-b290-483dd003b4b3
+		summarizeBy: none
+		sourceColumn: CountryCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'organizationalPerson.company'
+		dataType: string
+		lineageTag: de043ad8-34d3-4431-87c5-87011a041739
+		summarizeBy: none
+		sourceColumn: organizationalPerson.company
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Country New'
+		dataType: string
+		lineageTag: df6ae609-4293-44bb-a43b-e13d8745ac9b
+		summarizeBy: none
+		sourceColumn: Country New
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Short user identifier used across source systems.
+	column 'User ID'
+		dataType: string
+		lineageTag: 638a927e-5ae0-4835-b3b4-70e2d909fe8f
+		summarizeBy: none
+		sourceColumn: User ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Source system that supplied the Active Directory user record.
+	column DataSource
+		dataType: string
+		lineageTag: 38126c43-1b64-4b20-88ec-5216ca3d1f27
+		summarizeBy: none
+		sourceColumn: DataSource
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Licences Hierarchy'
+		lineageTag: 864955f4-17c9-4acc-94cb-4cfd107347e3
+
+		level Licences
+			lineageTag: 99d3beda-90ac-4273-a3a6-eb8bdbf2a267
+			column: Licences
+
+		level 'Group Member'
+			lineageTag: a22b348c-1cfa-4c53-9bd2-86b9ab13bb8d
+			column: 'Group Member'
+
+		level 'Display Name'
+			lineageTag: 818c6df6-a315-40ff-a44d-06b2d2b2e9d7
+			column: 'Display Name'
+
+	partition Users_fromAD = m
+		mode: import
+		source =
+				let
+				    Source = ActiveDirectory.Domains("kompan.net"),
+				    kompan.net = Source{[Domain="kompan.net"]}[#"Object Categories"],
+				    user1 = kompan.net{[Category="user"]}[Objects],
+				    #"Expanded top1" = Table.ExpandRecordColumn(user1, "top", {"memberOf", "whenChanged", "whenCreated"}, {"top.memberOf", "top.whenChanged", "top.whenCreated"}),
+				    #"Expanded top.memberOf2" = Table.ExpandListColumn(#"Expanded top1", "top.memberOf"),
+				    #"Expanded top.memberOf3" = Table.ExpandRecordColumn(#"Expanded top.memberOf2", "top.memberOf", {"cn", "displayName"}, {"top.memberOf.cn", "top.memberOf.displayName"}),
+				    #"Filtered Rows" = Table.SelectRows(#"Expanded top.memberOf3", each ([top.memberOf.cn] <> null)),
+				    #"Expanded user" = Table.ExpandRecordColumn(#"Filtered Rows", "user", {"givenName", "mail", "manager", "mobile", "userPrincipalName"}, {"user.givenName", "user.mail", "user.manager", "user.mobile", "user.userPrincipalName"}),
+				    #"Expanded user.manager" = Table.ExpandRecordColumn(#"Expanded user", "user.manager", {"displayName"}, {"user.manager.displayName"}),
+				    #"Expanded person" = Table.ExpandRecordColumn(#"Expanded user.manager", "person", {"sn"}, {"person.sn"}),
+				    #"Expanded organizationalPerson" = Table.ExpandRecordColumn(#"Expanded person", "organizationalPerson", {"c", "co", "company", "countryCode", "department", "l", "postalCode", "streetAddress", "title"}, {"organizationalPerson.c", "organizationalPerson.co", "organizationalPerson.company", "organizationalPerson.countryCode", "organizationalPerson.department", "organizationalPerson.l", "organizationalPerson.postalCode", "organizationalPerson.streetAddress", "organizationalPerson.title"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Expanded organizationalPerson","Kompan A/S","KOMPAN A/S",Replacer.ReplaceValue,{"organizationalPerson.company"}),
+				    #"Replaced Value2" = Table.ReplaceValue(#"Replaced Value1","Kompan Danmark A/S","KOMPAN Danmark A/S",Replacer.ReplaceText,{"organizationalPerson.company"}),
+				    #"Expanded msExchCustomAttributes" = Table.ExpandRecordColumn(#"Replaced Value2", "msExchCustomAttributes", {"extensionAttribute2", "extensionAttribute3"}, {"msExchCustomAttributes.extensionAttribute2", "msExchCustomAttributes.extensionAttribute3"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Expanded msExchCustomAttributes",{{"displayName", "DisplayName"}, {"user.givenName", "FirstName"}, {"user.mail", "Mail"}, {"user.manager.displayName", "Manager"}, {"user.mobile", "PhoneNumber"}, {"user.userPrincipalName", "UPN"}, {"organizationalPerson.c", "CountryCode"}, {"organizationalPerson.co", "Country"}, {"organizationalPerson.countryCode", "CountryCodeNumber"}, {"organizationalPerson.department", "Department"}, {"organizationalPerson.l", "City"}, {"organizationalPerson.postalCode", "PostalCode"}, {"organizationalPerson.streetAddress", "StreetAddress"}, {"organizationalPerson.title", "Title"}, {"person.sn", "LastName"}, {"top.memberOf.cn", "GroupMember"}, {"top.whenChanged", "WhenChangedDate"}, {"top.whenCreated", "WhenCreatedDate"}}),
+				    #"Added Conditional Column1" = Table.AddColumn(#"Renamed Columns", "Country Code New", each if [organizationalPerson.company] = "KOMPAN Danmark A/S" then "DK1" else if [organizationalPerson.company] = "KOMPAN A/S (DK)" then "DK" else [CountryCode]),
+				    #"Added Conditional Column2" = Table.AddColumn(#"Added Conditional Column1", "Country New", each if [CountryCode] = "DK1" then "Denmark" else if [organizationalPerson.company] = "Kompan Czech Republic s.r.o." then "Czech republic" else [Country]),
+				    #"Reordered Columns1" = Table.ReorderColumns(#"Added Conditional Column2",{"DisplayName", "FirstName", "Mail", "Manager", "PhoneNumber", "UPN", "CountryCode", "Country", "Country New", "organizationalPerson.company", "CountryCodeNumber", "Department", "City", "PostalCode", "StreetAddress", "Title", "LastName", "GroupMember", "top.memberOf.displayName", "WhenChangedDate", "WhenCreatedDate", "posixAccount", "shadowAccount", "msExchOmaUser", "msExchBaseClass", "msExchCertificateInformation", "msExchIMRecipient", "msExchMultiMediaUser", "msExchMailStorage", "msExchCustomAttributes.extensionAttribute2", "msExchCustomAttributes.extensionAttribute3", "msDS-CloudExtensions", "securityPrincipal", "mailRecipient", "distinguishedName", "Country Code New"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Reordered Columns1",{{"WhenChangedDate", type date}, {"WhenCreatedDate", type date}}),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type",{"DisplayName", "FirstName", "Mail", "Manager", "PhoneNumber", "UPN", "CountryCode", "Country Code New", "Country", "organizationalPerson.company", "CountryCodeNumber", "Department", "City", "PostalCode", "StreetAddress", "Title", "LastName", "GroupMember", "top.memberOf.displayName", "WhenChangedDate", "WhenCreatedDate", "posixAccount", "shadowAccount", "msExchOmaUser", "msExchBaseClass", "msExchCertificateInformation", "msExchIMRecipient", "msExchMultiMediaUser", "msExchMailStorage", "msExchCustomAttributes.extensionAttribute2", "msExchCustomAttributes.extensionAttribute3", "msDS-CloudExtensions", "securityPrincipal", "mailRecipient", "distinguishedName"}),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Reordered Columns",{{"msExchCustomAttributes.extensionAttribute3", "ExtensionAttribute3"}, {"msExchCustomAttributes.extensionAttribute2", "ExtensionAttribute2"}}),
+				    #"Removed Columns3" = Table.RemoveColumns(#"Renamed Columns1",{"CountryCode"}),
+				    #"Renamed Columns4" = Table.RenameColumns(#"Removed Columns3",{{"Country Code New", "CountryCode"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns4",{"posixAccount", "shadowAccount", "msExchOmaUser", "msExchBaseClass", "msExchCertificateInformation", "msExchIMRecipient", "msExchMultiMediaUser", "msExchMailStorage", "securityPrincipal", "mailRecipient"}),
+				    #"Renamed Columns2" = Table.RenameColumns(#"Removed Columns",{{"DisplayName", "DisplayName"}}),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Renamed Columns2",{"top.memberOf.displayName"}),
+				    #"Filtered Rows1" = Table.SelectRows(#"Removed Columns1", each true),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Filtered Rows1", "Mail", "Mail - Copy"),
+				    #"Split Column by Delimiter" = Table.SplitColumn(#"Duplicated Column", "Mail - Copy", Splitter.SplitTextByEachDelimiter({"@"}, QuoteStyle.Csv, true), {"Mail - Copy.1", "Mail - Copy.2"}),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Split Column by Delimiter",{{"Mail - Copy.1", type text}, {"Mail - Copy.2", type text}}),
+				    #"Removed Columns2" = Table.RemoveColumns(#"Changed Type1",{"Mail - Copy.1"}),
+				    #"Renamed Columns3" = Table.RenameColumns(#"Removed Columns2",{{"Mail - Copy.2", "Domain"}}),
+				    #"Lowercased Text" = Table.TransformColumns(#"Renamed Columns3",{{"Domain", Text.Lower, type text}}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Lowercased Text",null,"No value",Replacer.ReplaceValue,{"Domain"}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Replaced Value", "Internal User", each if Text.Contains([Domain], "kompan") then "Yes" else "No"),
+				    #"Renamed Columns5" = Table.RenameColumns(#"Added Conditional Column",{{"DisplayName", "Display Name"}, {"FirstName", "First Name"}, {"PhoneNumber", "Phone Number"}, {"GroupMember", "Group Member"}, {"LastName", "Last Name"}, {"StreetAddress", "Street Address"}, {"PostalCode", "Postal Code"}}),
+				    #"Replaced Value3" = Table.ReplaceValue(#"Renamed Columns5",".com",".net",Replacer.ReplaceText,{"UPN"}),
+				    #"Uppercased Text" = Table.TransformColumns(#"Replaced Value3",{{"UPN", Text.Upper, type text}}),
+				    #"Added Custom" = Table.AddColumn(#"Uppercased Text", "User ID", each Text.BeforeDelimiter([UPN], "@")),
+				    #"Reordered Columns2" = Table.ReorderColumns(#"Added Custom",{"User ID", "Display Name", "First Name", "Mail", "Manager", "Phone Number", "UPN", "CountryCode", "Country New", "Country", "organizationalPerson.company", "CountryCodeNumber", "Department", "City", "Postal Code", "Street Address", "Title", "Last Name", "Group Member", "WhenChangedDate", "WhenCreatedDate", "ExtensionAttribute2", "ExtensionAttribute3", "msDS-CloudExtensions", "distinguishedName", "Domain", "Internal User"}),
+				    #"Added Custom1" = Table.AddColumn(#"Reordered Columns2", "DataSource", each "Active Directory")
+				in
+				    #"Added Custom1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

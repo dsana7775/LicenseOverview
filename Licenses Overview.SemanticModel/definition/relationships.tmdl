@@ -1,0 +1,47 @@
+relationship e2ddb486-8b4c-4814-b678-c8137a6174f5
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_Calendar.Date
+	toColumn: LocalDateTable_07055012-6a8b-4480-9e3e-2273943839a3.Date
+
+relationship 4f66e6c9-c600-4d46-86de-3d269df99d34
+	fromColumn: fact_UsersFromAD.WhenChangedDate
+	toColumn: dim_Calendar.Date
+
+relationship ee3b96ab-38cc-4608-8ae9-1c305d125433
+	isActive: false
+	fromColumn: fact_UsersFromAD.WhenCreatedDate
+	toColumn: dim_Calendar.Date
+
+relationship 4a75c900-89d5-4cf1-90ef-0430e37fd618
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_MeasuresUsers.Date
+	toColumn: LocalDateTable_6f44ce91-ee83-40d1-a02e-5e1dc8a21090.Date
+
+relationship 4ab68da4-c6af-4c63-9b3e-f88177130a89
+	joinOnDateBehavior: datePartOnly
+	fromColumn: fact_HRSecurity.DWCreatedDate
+	toColumn: LocalDateTable_bad7dc21-8f42-461a-9c95-6ef3adec2a6a.Date
+
+relationship AutoDetected_0d83b116-5de6-4fae-ab1a-d781b8f00e55
+	crossFilteringBehavior: bothDirections
+	fromCardinality: one
+	fromColumn: fact_UsersFromQADToAppend.UPN
+	toColumn: fact_UsersFromQAD.UPN
+
+relationship AutoDetected_e4ab6a4d-4518-48e7-a918-a1c487113723
+	fromColumn: fact_UsersLicensesAll.UPN
+	toColumn: dim_User.UPN
+
+relationship AutoDetected_f56ec02c-b98a-4870-99a3-7e420c50985b
+	fromColumn: dim_User.Department
+	toColumn: dim_Department.Department
+
+relationship 2abaef39-5dc4-c470-9219-bae7be8ce99b
+	crossFilteringBehavior: bothDirections
+	fromColumn: fact_HRSecurity.HRManagerKey
+	toColumn: dim_User.Initials
+
+relationship AutoDetected_f5351e0e-adf2-413c-95e1-dada3fa45692
+	fromColumn: fact_UsersFromQAD.'Group Member'
+	toColumn: mapping_Licenses.'Group Member'
+

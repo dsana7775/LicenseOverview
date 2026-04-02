@@ -1,0 +1,130 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "ReportSection82872ea9d1c250d1ef2f",
+  "displayName": "Licenses",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "6346d79e52855b3c19f7",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_UsersLicensesAll"
+              }
+            },
+            "Property": "License"
+          }
+        },
+        "type": "Advanced",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "f",
+              "Entity": "fact_UsersLicensesAll",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "Not": {
+                  "Expression": {
+                    "Comparison": {
+                      "ComparisonKind": 0,
+                      "Left": {
+                        "Column": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Source": "f"
+                            }
+                          },
+                          "Property": "License"
+                        }
+                      },
+                      "Right": {
+                        "Literal": {
+                          "Value": "'Other'"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "Pod2",
+    "type": "Default",
+    "parameters": []
+  },
+  "objects": {
+    "outspace": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "ThemeDataColor": {
+                    "ColorId": 1,
+                    "Percent": 0.6
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "outspacePane": [
+      {
+        "properties": {
+          "width": {
+            "expr": {
+              "Literal": {
+                "Value": "264L"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visualInteractions": [
+    {
+      "source": "e40504178127e8f50312",
+      "target": "2a6a25f0b4f610934117",
+      "type": "NoFilter"
+    },
+    {
+      "source": "3cb52b8ef5ea51633f96",
+      "target": "2a6a25f0b4f610934117",
+      "type": "NoFilter"
+    },
+    {
+      "source": "bd30e012c413a90a073a",
+      "target": "2a6a25f0b4f610934117",
+      "type": "NoFilter"
+    },
+    {
+      "source": "79fc73c81fde1b0c3b3c",
+      "target": "2a6a25f0b4f610934117",
+      "type": "NoFilter"
+    },
+    {
+      "source": "7b78e2e7edd87d6a0067",
+      "target": "2a6a25f0b4f610934117",
+      "type": "NoFilter"
+    }
+  ]
+}
