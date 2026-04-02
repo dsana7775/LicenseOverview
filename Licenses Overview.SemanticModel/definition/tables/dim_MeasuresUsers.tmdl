@@ -87,6 +87,21 @@ table dim_MeasuresUsers
 		displayFolder: Users
 		lineageTag: c6be53c7-f859-4ff1-b172-ccb6e9bd4bce
 
+	/// Number of unique Graph users whose UPN does not exist in dim_User.
+	measure GraphUsersUnmatchedAfterMerge =
+			
+			VAR GraphUPNs =
+			    FILTER(
+			        VALUES(fact_UsersFromGraphJSON[UPN]),
+			        NOT ISBLANK(fact_UsersFromGraphJSON[UPN])
+			    )
+			VAR UserUPNs = VALUES(dim_User[UPN])
+			RETURN
+			COUNTROWS(EXCEPT(GraphUPNs, UserUPNs))
+		formatString: 0
+		displayFolder: Users
+		lineageTag: 63c395b4-b8ec-438f-9a40-f064f4f5ef6d
+
 	/// TRUE when the signed-in user manages at least one employee.
 	measure IsManager =
 			

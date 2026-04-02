@@ -82,7 +82,7 @@ table fact_UsersLicensesAll
 				    #"Sorted Rows" = Table.Sort(Source,{{"Display Name", Order.Ascending}}),
 				    #"Reordered Columns" = Table.ReorderColumns(#"Sorted Rows",{"Display Name", "Mail", "UPN", "Group Member", "WhenChangedDate", "WhenCreatedDate", "distinguishedName", "User ID", "User active", "User active reason"}),
 				    #"Lowercased Text" = Table.TransformColumns(#"Reordered Columns",{{"User ID", Text.Lower, type text}}),
-				    #"Replaced Value" = Table.ReplaceValue(#"Lowercased Text",".COM",".NET",Replacer.ReplaceText,{"UPN"}),
+				    #"Replaced Value" = Table.TransformColumns(#"Lowercased Text",{{"UPN", each if _ = null then null else if Text.EndsWith(Text.Lower(_), "@kompan.com") then Text.Start(_, Text.Length(_) - 4) & ".net" else _, type text}}),
 				    #"Removed Other Columns" = Table.SelectColumns(#"Replaced Value",{"Display Name", "Mail", "UPN", "Group Member", "Department", "DataSource", "User ID"}),
 				    #"Merged Queries" = Table.NestedJoin(#"Removed Other Columns", {"Group Member"}, mapping_Licenses, {"Group Member"}, "mapping_Licenses", JoinKind.LeftOuter),
 				    #"Expanded mapping_Licenses" = Table.ExpandTableColumn(#"Merged Queries", "mapping_Licenses", {"License"}, {"License"}),

@@ -120,7 +120,7 @@ table dim_User
 				    #"Cleaned Text" = Table.TransformColumns(#"Trimmed Text",{{"UPN", Text.Clean, type text}}),
 				    #"Appended Query" = Table.Combine({#"Cleaned Text", fact_UsersFromQADToAppend}),
 				    #"Reordered Columns2" = Table.ReorderColumns(#"Appended Query",{"Display Name", "UPN", "Business Unit", "Company", "Department", "distinguishedName"}),
-				    #"Replaced Value16" = Table.ReplaceValue(#"Reordered Columns2",".COM",".NET",Replacer.ReplaceText,{"UPN"}),
+				    #"Replaced Value16" = Table.TransformColumns(#"Reordered Columns2",{{"UPN", each if _ = null then null else if Text.EndsWith(Text.Lower(_), "@kompan.com") then Text.Start(_, Text.Length(_) - 4) & ".net" else _, type text}}),
 				    #"Removed Duplicates" = Table.Distinct(#"Replaced Value16", {"UPN"}),
 				    #"Added Custom" = Table.AddColumn(#"Removed Duplicates", "Initials1", each Text.Lower(Text.BeforeDelimiter([UPN], "@"))),
 				    #"Removed Columns" = Table.RemoveColumns(#"Added Custom",{"Initials"}),

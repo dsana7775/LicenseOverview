@@ -391,7 +391,7 @@ table fact_UsersFromAD
 				    #"Replaced Value" = Table.ReplaceValue(#"Lowercased Text",null,"No value",Replacer.ReplaceValue,{"Domain"}),
 				    #"Added Conditional Column" = Table.AddColumn(#"Replaced Value", "Internal User", each if Text.Contains([Domain], "kompan") then "Yes" else "No"),
 				    #"Renamed Columns5" = Table.RenameColumns(#"Added Conditional Column",{{"DisplayName", "Display Name"}, {"FirstName", "First Name"}, {"PhoneNumber", "Phone Number"}, {"GroupMember", "Group Member"}, {"LastName", "Last Name"}, {"StreetAddress", "Street Address"}, {"PostalCode", "Postal Code"}}),
-				    #"Replaced Value3" = Table.ReplaceValue(#"Renamed Columns5",".com",".net",Replacer.ReplaceText,{"UPN"}),
+				    #"Replaced Value3" = Table.TransformColumns(#"Renamed Columns5",{{"UPN", each if _ = null then null else if Text.EndsWith(Text.Lower(_), "@kompan.com") then Text.Start(_, Text.Length(_) - 4) & ".net" else _, type text}}),
 				    #"Uppercased Text" = Table.TransformColumns(#"Replaced Value3",{{"UPN", Text.Upper, type text}}),
 				    #"Added Custom" = Table.AddColumn(#"Uppercased Text", "User ID", each Text.BeforeDelimiter([UPN], "@")),
 				    #"Reordered Columns2" = Table.ReorderColumns(#"Added Custom",{"User ID", "Display Name", "First Name", "Mail", "Manager", "Phone Number", "UPN", "CountryCode", "Country New", "Country", "organizationalPerson.company", "CountryCodeNumber", "Department", "City", "Postal Code", "Street Address", "Title", "Last Name", "Group Member", "WhenChangedDate", "WhenCreatedDate", "ExtensionAttribute2", "ExtensionAttribute3", "msDS-CloudExtensions", "distinguishedName", "Domain", "Internal User"}),

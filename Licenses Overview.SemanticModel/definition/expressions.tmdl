@@ -198,7 +198,7 @@ expression dimUserOld = ```
 		    #"Renamed Columns8" = Table.RenameColumns(#"Reordered Columns2",{{"DisplayName", "Display Name"}, {"FirstName", "First Name"}, {"PhoneNumber", "Phone Number"}, {"CountryCodeNumber", "Country Code Number"}, {"PostalCode", "Postal Code"}, {"StreetAddress", "Street Address"}, {"LastName", "Last Name"}, {"GroupMember", "Group Member"}}),
 		    #"Reordered Columns3" = Table.ReorderColumns(#"Renamed Columns8",{"Display Name", "First Name", "Last Name", "User ID", "Mail", "Manager", "Phone Number", "UPN", "Country Code", "Business Unit", "Country", "Company", "Country Code Number", "Department", "City", "Postal Code", "Street Address", "Title", "Group Member", "WhenChangedDate", "WhenCreatedDate", "ExtensionAttribute2", "ExtensionAttribute3", "distinguishedName", "Domain", "Internal User"}),
 		    #"Filtered Rows2" = Table.SelectRows(#"Reordered Columns3", each [Display Name] <> null and [Display Name] <> ""),
-		    #"Replaced Value21" = Table.ReplaceValue(#"Filtered Rows2",".com",".net",Replacer.ReplaceText,{"UPN"}),
+		    #"Replaced Value21" = Table.TransformColumns(#"Filtered Rows2",{{"UPN", each if _ = null then null else if Text.EndsWith(Text.Lower(_), "@kompan.com") then Text.Start(_, Text.Length(_) - 4) & ".net" else _, type text}}),
 		    #"Appended Query" = Table.Combine({#"Replaced Value21", fact_UsersFromQAD}),
 		    #"Removed Columns8" = Table.RemoveColumns(#"Appended Query",{"User active reason"}),
 		    #"Uppercased Text" = Table.TransformColumns(#"Removed Columns8",{{"UPN", Text.Upper, type text}}),
@@ -507,7 +507,7 @@ expression dimUserOld2 =
 		    #"Reordered Columns3" = Table.ReorderColumns(#"Removed Other Columns",{"Display Name", "Initials", "UPN", "Business Unit", "Company", "Department", "distinguishedName"}),
 		    #"Appended Query" = Table.Combine({#"Reordered Columns3", fact_UsersFromQADToAppend}),
 		    #"Reordered Columns2" = Table.ReorderColumns(#"Appended Query",{"Initials", "Display Name", "UPN", "Business Unit", "Company", "Department", "distinguishedName"}),
-		    #"Replaced Value16" = Table.ReplaceValue(#"Reordered Columns2",".COM",".NET",Replacer.ReplaceText,{"UPN"}),
+		    #"Replaced Value16" = Table.TransformColumns(#"Reordered Columns2",{{"UPN", each if _ = null then null else if Text.EndsWith(Text.Lower(_), "@kompan.com") then Text.Start(_, Text.Length(_) - 4) & ".net" else _, type text}}),
 		    #"Removed Duplicates" = Table.Distinct(#"Replaced Value16", {"UPN"})
 		in
 		    #"Removed Duplicates"
