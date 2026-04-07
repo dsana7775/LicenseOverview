@@ -77,7 +77,7 @@
               },
               "queryRef": "fact_UsersLicensesAll.Display Name",
               "nativeQueryRef": "Display Name",
-              "active": false
+              "active": true
             }
           ]
         },
@@ -239,6 +239,7 @@
                   }
                 }
               ],
+              "isToggled": true,
               "children": [
                 {
                   "identityValues": [
@@ -391,6 +392,16 @@
                     {
                       "Literal": {
                         "Value": "'ADOBEUsers - Acrobat Pro DC'"
+                      }
+                    }
+                  ],
+                  "isToggled": true
+                },
+                {
+                  "identityValues": [
+                    {
+                      "Literal": {
+                        "Value": "'ADOBEUsers - Acrobat Standard DC'"
                       }
                     }
                   ],

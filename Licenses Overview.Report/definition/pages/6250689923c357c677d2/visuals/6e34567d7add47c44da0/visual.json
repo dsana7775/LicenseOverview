@@ -1,0 +1,52 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "name": "6e34567d7add47c44da0",
+  "position": {
+    "x": 744,
+    "y": 24,
+    "z": 2001,
+    "height": 696,
+    "width": 327,
+    "tabOrder": 2001
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_UsersFromGraphJSON"
+                    }
+                  },
+                  "Property": "Display Name"
+                }
+              },
+              "queryRef": "fact_UsersFromGraphJSON.Display Name",
+              "nativeQueryRef": "Display Name"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_MeasuresUsers"
+                    }
+                  },
+                  "Property": "GraphUsersUnmatchedAfterMerge"
+                }
+              },
+              "queryRef": "dim_MeasuresUsers.GraphUsersUnmatchedAfterMerge",
+              "nativeQueryRef": "GraphUsersUnmatchedAfterMerge"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

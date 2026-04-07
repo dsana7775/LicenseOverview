@@ -83,24 +83,10 @@ table dim_MeasuresUsers
 		lineageTag: 8428557d-a47e-4990-aff0-559eaf2855a8
 
 	/// Creation year of the selected user record.
-	measure YearCreated = YEAR('fact_UsersFromAD'[WhenCreatedDate])
-		displayFolder: Users
-		lineageTag: c6be53c7-f859-4ff1-b172-ccb6e9bd4bce
-
-	/// Number of unique Graph users whose UPN does not exist in dim_User.
-	measure GraphUsersUnmatchedAfterMerge =
-			
-			VAR GraphUPNs =
-			    FILTER(
-			        VALUES(fact_UsersFromGraphJSON[UPN]),
-			        NOT ISBLANK(fact_UsersFromGraphJSON[UPN])
-			    )
-			VAR UserUPNs = VALUES(dim_User[UPN])
-			RETURN
-			COUNTROWS(EXCEPT(GraphUPNs, UserUPNs))
+	measure YearCreated = YEAR(MAX('fact_UsersFromAD'[WhenCreatedDate]))
 		formatString: 0
 		displayFolder: Users
-		lineageTag: 63c395b4-b8ec-438f-9a40-f064f4f5ef6d
+		lineageTag: c6be53c7-f859-4ff1-b172-ccb6e9bd4bce
 
 	/// TRUE when the signed-in user manages at least one employee.
 	measure IsManager =
@@ -186,6 +172,21 @@ table dim_MeasuresUsers
 		formatString: """TRUE"";""TRUE"";""FALSE"""
 		displayFolder: RowLevelSecurity
 		lineageTag: fe46618c-9f0f-4d2b-af73-086a1d2f6205
+
+	/// Number of unique Graph users whose UPN does not exist in dim_User.
+	measure GraphUsersUnmatchedAfterMerge =
+			
+			VAR GraphUPNs =
+			    FILTER(
+			        VALUES(fact_UsersFromGraphJSON[UPN]),
+			        NOT ISBLANK(fact_UsersFromGraphJSON[UPN])
+			    )
+			VAR UserUPNs = VALUES(dim_User[UPN])
+			RETURN
+			COUNTROWS(EXCEPT(GraphUPNs, UserUPNs))
+		formatString: 0
+		displayFolder: Users
+		lineageTag: 63c395b4-b8ec-438f-9a40-f064f4f5ef6d
 
 	/// Reference date used by the measures table for time-based calculations.
 	column Date
